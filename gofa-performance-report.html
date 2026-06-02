@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoFa Android - Performance Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --panel: rgba(17, 24, 39, 0.82);
+      --panel-2: rgba(30, 41, 59, 0.74);
+      --border: rgba(99, 102, 241, 0.22);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --muted-2: #64748b;
+      --cyan: #22d3ee;
+      --indigo: #818cf8;
+      --green: #34d399;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --pink: #f472b6;
+      --violet: #a78bfa;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.16), transparent 32%),
+        radial-gradient(circle at 90% 0%, rgba(34, 211, 238, 0.10), transparent 26%),
+        #0a0e1a;
+      line-height: 1.55;
+    }
+    .container { max-width: 1320px; margin: 0 auto; padding: 0 28px; }
+    header { padding: 56px 0 34px; border-bottom: 1px solid var(--border); background: rgba(10, 14, 26, 0.62); }
+    h1 { margin: 0 0 12px; font-size: 42px; letter-spacing: -0.02em; }
+    h2 { margin: 0 0 14px; font-size: 26px; }
+    h3 { margin: 0 0 10px; font-size: 18px; }
+    p { margin: 0; color: var(--muted); }
+    code { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; color: #c4b5fd; }
+    .badge { display: inline-flex; gap: 8px; align-items: center; padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; color: var(--indigo); background: rgba(99, 102, 241, 0.11); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--indigo); }
+    .meta { display: grid; grid-template-columns: repeat(6, minmax(120px, 1fr)); gap: 12px; margin-top: 24px; }
+    .meta div, .card, .chart-card, .finding, .rec { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 14px 40px rgba(0, 0, 0, 0.20); }
+    .meta div { padding: 12px 14px; }
+    .label { display: block; color: var(--muted-2); font-size: 12px; margin-bottom: 2px; }
+    .value { font-weight: 800; }
+    nav { position: sticky; top: 0; z-index: 5; backdrop-filter: blur(14px); background: rgba(10, 14, 26, 0.86); border-bottom: 1px solid var(--border); }
+    nav .container { display: flex; gap: 10px; overflow-x: auto; padding-top: 10px; padding-bottom: 10px; }
+    nav a { white-space: nowrap; color: var(--muted); text-decoration: none; padding: 8px 12px; border-radius: 8px; }
+    nav a:hover { color: var(--text); background: rgba(99, 102, 241, 0.12); }
+    section { padding: 34px 0; }
+    .section-head { margin-bottom: 18px; }
+    .kpi { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .card { padding: 18px; }
+    .card-title { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .card-value { font-size: 30px; font-weight: 900; letter-spacing: -0.02em; }
+    .card-sub { color: var(--muted-2); font-size: 12px; margin-top: 6px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .chart-card { padding: 18px; min-height: 340px; }
+    .chart-wrap { height: 270px; }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: var(--radius); background: var(--panel); border: 1px solid var(--border); }
+    th, td { padding: 12px 14px; border-bottom: 1px solid rgba(99, 102, 241, 0.12); text-align: left; vertical-align: top; }
+    th { color: var(--indigo); background: rgba(99, 102, 241, 0.10); font-size: 13px; }
+    td { color: #dbeafe; }
+    tr:last-child td { border-bottom: 0; }
+    .muted { color: var(--muted); }
+    .bad { color: var(--rose); }
+    .warn { color: var(--amber); }
+    .good { color: var(--green); }
+    .info { color: var(--cyan); }
+    .rank { font-weight: 900; color: var(--text); }
+    .severity { display: inline-block; padding: 3px 8px; border-radius: 999px; font-weight: 800; font-size: 12px; }
+    .severity.high { color: var(--rose); background: rgba(251, 113, 133, 0.12); }
+    .severity.medium { color: var(--amber); background: rgba(251, 191, 36, 0.12); }
+    .severity.low { color: var(--green); background: rgba(52, 211, 153, 0.12); }
+    .findings, .recs { display: grid; gap: 14px; }
+    .finding, .rec { padding: 18px; }
+    .finding-title, .rec-title { font-weight: 900; margin-bottom: 6px; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    ul { margin: 10px 0 0 18px; color: var(--muted); }
+    li { margin: 6px 0; }
+    .note { padding: 14px 16px; border: 1px solid rgba(251, 191, 36, 0.28); background: rgba(251, 191, 36, 0.08); border-radius: var(--radius); color: #fde68a; }
+    footer { padding: 28px 0 50px; color: var(--muted-2); }
+    @media (max-width: 980px) {
+      .meta, .kpi { grid-template-columns: repeat(2, 1fr); }
+      .grid-2, .split { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .container { padding: 0 16px; }
+      h1 { font-size: 31px; }
+      .meta, .kpi { grid-template-columns: 1fr; }
+      th, td { padding: 10px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="badge"><span class="dot"></span> PERFETTO TRACE REPORT</div>
+      <h1>GoFa Android - Báo cáo hiệu năng bản đồ</h1>
+      <p>Báo cáo được chuẩn hóa theo 8 tổ hợp bản đồ: <strong>3D & HD Map</strong>, <strong>Chỉ 3D</strong>, <strong>2D & HD Map</strong>, <strong>Chỉ 2D</strong>, <strong>Vệ tinh & HD Map</strong>, <strong>Chỉ Vệ tinh</strong>, <strong>3D MAPBOX & HD MAP</strong>, <strong>Chỉ 3D MAPBOX</strong>.</p>
+      <div class="meta">
+        <div><span class="label">Device</span><span class="value">Samsung SM-F731B</span></div>
+        <div><span class="label">Trace duration</span><span class="value">~120s mỗi tổ hợp</span></div>
+        <div><span class="label">Tổ hợp hiện có</span><span class="value">Đủ 8 tổ hợp</span></div>
+        <div><span class="label">Package</span><span class="value">com.gofa.mobile</span></div>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="container">
+      <a href="#overview">Tổng quan</a>
+      <a href="#comparison">8 tổ hợp</a>
+      <a href="#layers">Layer nặng nhất</a>
+      <a href="#cpu">CPU & Memory</a>
+      <a href="#gpu">GPU</a>
+      <a href="#fps">FPS & Jank</a>
+      <a href="#temperature">Thermal</a>
+      <a href="#recommendations">Khuyến nghị</a>
+    </div>
+  </nav>
+
+  <section id="overview">
+    <div class="container">
+      <div class="section-head">
+        <h2>Tổng quan</h2>
+        <p>Kết luận chính sau đủ 8 tổ hợp: các cấu hình có <strong>HD Map</strong> đều làm tăng tải render rõ rệt, đặc biệt trên luồng render Mapbox (<code>MapboxRenderThr</code>), <code>render_tree_render</code>, translucent pass và nhóm layer <code>hd-road-*</code>. <strong>3D MAPBOX & HD MAP</strong> là tổ hợp bất lợi nhất về FPS/jank; <strong>Vệ tinh & HD Map</strong> có GPU memory cao nhất; <strong>3D & HD Map</strong> có RSS cao nhất trong bộ đo hiện tại.</p>
+      </div>
+      <div class="kpi">
+        <div class="card"><div class="card-title">CPU app trung bình</div><div class="card-value bad">169.15%</div><div class="card-sub">3D MAPBOX & HD MAP, ~1.69 cores</div></div>
+        <div class="card"><div class="card-title">Mapbox render FPS</div><div class="card-value bad">26.26</div><div class="card-sub">Worst-case: 3D MAPBOX & HD MAP</div></div>
+        <div class="card"><div class="card-title">Render avg</div><div class="card-value bad">29.37ms</div><div class="card-sub">P99 51.86ms, jank 14.00%</div></div>
+        <div class="card"><div class="card-title">RAM app đang dùng (RSS) avg / max</div><div class="card-value warn">692 / 740 MB</div><div class="card-sub">3D & HD Map latest</div></div>
+        <div class="card"><div class="card-title">GPU memory avg</div><div class="card-value bad">441.6 MB</div><div class="card-sub">Vệ tinh & HD Map, max 460.1 MB</div></div>
+      </div>
+      <table style="margin-top:16px">
+        <thead>
+          <tr><th>Hạng mục</th><th>Tổ hợp nặng nhất</th><th>Tổ hợp nhẹ nhất</th><th>Nhận định xử lý</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>CPU app</td><td class="bad">3D MAPBOX & HD MAP - 169.15%</td><td class="good">Chỉ Vệ tinh - 87.59%</td><td>HD Map và Mapbox 3D basemap làm tăng CPU render/main/JIT.</td></tr>
+          <tr><td>Render FPS / jank</td><td class="bad">3D MAPBOX & HD MAP - 26.26 FPS, 14.00% frame &gt;33.3ms</td><td class="good">Chỉ Vệ tinh - 29.92 FPS, 0.00% frame &gt;33.3ms</td><td>Ưu tiên giảm basemap 3D/symbol + HD overlay khi tương tác.</td></tr>
+          <tr><td>Frame time</td><td class="bad">3D MAPBOX & HD MAP - avg 29.37ms, P99 51.86ms</td><td class="good">Chỉ Vệ tinh - avg 12.51ms, P99 21.76ms</td><td>Frame budget 30 FPS bị đe dọa ở Mapbox 3D + HD.</td></tr>
+          <tr><td>RSS memory</td><td class="warn">3D & HD Map - 691.75 / 740.46 MB</td><td class="good">Chỉ Vệ tinh - 500.89 / 610.69 MB</td><td>Theo dõi memory growth khi bật HD Road + 3D building.</td></tr>
+          <tr><td>GPU memory</td><td class="bad">Vệ tinh & HD Map - 441.57 / 460.11 MB</td><td class="good">Chỉ 2D - 155.65 / 157.33 MB</td><td>Raster satellite + HD overlay là tổ hợp tốn GPU memory nhất.</td></tr>
+          <tr><td>Thermal</td><td class="bad">Chỉ 3D MAPBOX - SKIN 43.97 / 44.20°C</td><td class="good">Chỉ Vệ tinh - SKIN 40.11 / 40.60°C</td><td>Cần adaptive quality theo thermal status, pitch, zoom và interaction state.</td></tr>
+        </tbody>
+      </table>
+      <table style="margin-top:16px">
+        <thead>
+          <tr><th>Thông tin thiết bị test</th><th>Giá trị</th><th>Ý nghĩa khi đọc kết quả</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Thiết bị</td><td><strong>Samsung SM-F731B</strong> (<code>b5q</code>)</td><td>Thiết bị thật dùng cho toàn bộ trace trong báo cáo.</td></tr>
+          <tr><td>Android</td><td>Android 16, API 36</td><td>Kết quả phụ thuộc scheduler, thermal policy và driver của OS hiện tại.</td></tr>
+          <tr><td>SoC / platform</td><td>Qualcomm <code>kalama</code>, <code>SM8550</code></td><td>Nhóm hiệu năng flagship; nếu máy yếu hơn cần kỳ vọng FPS/jank xấu hơn.</td></tr>
+          <tr><td>CPU</td><td>8 cores: 3x Cortex-A510 class max 2.02GHz, 4x Cortex-A715/A710 class max 2.80GHz, 1x Cortex-X3 class max 3.36GHz</td><td>CPU trong báo cáo là mức dùng CPU quy đổi theo 1 lõi: 100% nghĩa là dùng hết 1 lõi, 169% nghĩa là tương đương khoảng 1.69 lõi. Thiết bị có 8 lõi nên đây không phải phần trăm của toàn bộ CPU.</td></tr>
+          <tr><td>RAM</td><td>Tổng RAM thiết bị khoảng 7.0 GB; RAM ứng dụng sử dụng (RSS) trong các bài đo khoảng 500-740 MB</td><td><code>RSS</code> là lượng RAM app đang chiếm tại thời điểm đo. Mức này khá cao cho một màn hình bản đồ, nên cần theo dõi khi dùng lâu hoặc đổi nhiều chế độ bản đồ.</td></tr>
+          <tr><td>GPU</td><td>Adreno stack, OpenGL ES 3.2, driver <code>com.samsung.gamedriver.sm8550</code></td><td>Thông tin GPU của thiết bị test.</td></tr>
+          <tr><td>Màn hình chính</td><td>1080x2640, density 480, mode 120Hz</td><td>App render đang được đánh giá trên màn hình độ phân giải cao; frame pacing thực tế quanh 30 FPS.</td></tr>
+          <tr><td>Display policy</td><td>Primary range 10-120Hz, active display 120Hz</td><td>Mapbox render FPS khoảng 26-30 FPS dù màn hình hỗ trợ 120Hz, nên bottleneck nằm ở render workload.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="comparison">
+    <div class="container">
+      <div class="section-head">
+        <h2>Bảng so sánh 8 tổ hợp bản đồ</h2>
+        <p>Hiện đã có dữ liệu thật cho đủ 8 tổ hợp bản đồ.</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Nhóm</th>
+            <th>Metric</th>
+            <th>3D & HD Map</th>
+            <th>Chỉ 3D</th>
+            <th>2D & HD Map</th>
+            <th>Chỉ 2D</th>
+            <th>Vệ tinh & HD Map</th>
+            <th>Chỉ Vệ tinh</th>
+            <th>3D MAPBOX & HD MAP</th>
+            <th>Chỉ 3D MAPBOX</th>
+            <th>Đơn vị</th>
+            <th>Ghi chú phân tích</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Trace</td><td>Duration</td><td>119.93</td><td>119.93</td><td>119.98</td><td>119.94</td><td>119.95</td><td>119.98</td><td>119.971</td><td>119.927</td><td>s</td><td>Mỗi trace dài khoảng 120s.</td></tr>
+          <tr><td>CPU</td><td>App CPU trung bình</td><td class="bad">167.36</td><td class="warn">134.37</td><td class="bad">160.64</td><td class="warn">130.86</td><td class="bad">168.21</td><td class="good">87.59</td><td class="bad">169.15</td><td class="bad">160.24</td><td>% theo 1 lõi CPU</td><td>3D MAPBOX & HD MAP cao nhất; Chỉ 3D MAPBOX vẫn cao do Mapbox basemap 3D/symbol.</td></tr>
+          <tr><td>CPU</td><td>Luồng render Mapbox (Luồng vẽ bản đồ Mapbox (<code>MapboxRenderThr</code>))</td><td class="bad">73.34</td><td class="warn">68.37</td><td class="bad">72.27</td><td class="warn">66.70</td><td class="warn">69.23</td><td class="good">43.45</td><td class="bad">81.74</td><td class="bad">84.53</td><td>% theo 1 lõi CPU</td><td>Phần CPU chuyên dùng để vẽ bản đồ Mapbox. Giá trị càng cao nghĩa là bản đồ càng tốn công để render.</td></tr>
+          <tr><td>CPU</td><td>Luồng chính của app (<code>main/UI thread</code>)</td><td class="warn">42.14</td><td class="warn">35.91</td><td class="warn">39.96</td><td class="warn">36.04</td><td class="warn">40.84</td><td class="good">24.57</td><td class="warn">37.51</td><td class="warn">40.72</td><td>% theo 1 lõi CPU</td><td>Luồng điều khiển giao diện chính. Nếu cao quá, app có thể phản hồi chậm khi người dùng thao tác.</td></tr>
+          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="warn">691.75 / 740.46</td><td class="warn">615.25 / 665.76</td><td class="warn">609.73 / 673.44</td><td class="good">557.81 / 601.23</td><td class="good">535.78 / 630.61</td><td class="good">500.89 / 610.69</td><td class="warn">666.99 / 713.29</td><td class="warn">605.83 / 663.00</td><td>MB</td><td>Lượng RAM app chiếm khi chạy bản đồ. Số trước là trung bình, số sau là cao nhất trong bài đo.</td></tr>
+          <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="good">17.52 / 17.56</td><td class="good">17.47 / 17.50</td><td class="good">17.46 / 17.51</td><td class="good">17.45 / 17.50</td><td class="good">17.48 / 17.51</td><td class="good">17.46 / 17.49</td><td class="good">17.48 / 17.53</td><td class="good">17.48 / 17.53</td><td>MB</td><td>Bộ nhớ tạm hệ thống dùng khi RAM căng. Các giá trị hiện rất thấp và ổn định, chưa phải vấn đề chính.</td></tr>
+          <tr><td>GPU</td><td>Bộ nhớ GPU đang dùng avg / max</td><td class="warn">268.99 / 270.30</td><td class="good">178.88 / 183.90</td><td class="warn">243.71 / 246.21</td><td class="good">155.65 / 157.33</td><td class="bad">441.57 / 460.11</td><td class="warn">321.73 / 338.74</td><td class="bad">328.06 / 337.27</td><td class="warn">221.70 / 230.85</td><td>MB</td><td>Bộ nhớ GPU dùng cho texture/tile/layer khi vẽ bản đồ. Cao nhất là Vệ tinh & HD Map do nền vệ tinh và overlay HD.</td></tr>
+          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="warn">28.56</td><td class="good">29.85</td><td class="warn">28.92</td><td class="good">29.89</td><td class="warn">28.88</td><td class="good">29.92</td><td class="bad">26.26</td><td class="warn">28.25</td><td>fps</td><td>Chỉ 3D MAPBOX cải thiện FPS so với Mapbox+HD nhưng vẫn thấp hơn 3D custom.</td></tr>
+          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="bad">23.78 / 32.08 / 36.82</td><td class="good">21.63 / 26.80 / 28.91</td><td class="bad">23.16 / 30.70 / 36.03</td><td class="good">20.97 / 25.72 / 28.13</td><td class="warn">21.94 / 29.60 / 35.74</td><td class="good">12.51 / 18.67 / 21.76</td><td class="bad">29.37 / 38.04 / 51.86</td><td class="bad">28.46 / 34.57 / 41.90</td><td>ms</td><td>Chỉ 3D MAPBOX vẫn có P99 cao do symbol placement.</td></tr>
+          <tr><td>FPS</td><td>Frames &gt; 33.3ms</td><td class="bad">128 / 3425 = 3.74%</td><td class="good">7 / 3580 = 0.20%</td><td class="warn">87 / 3469 = 2.51%</td><td class="good">0 / 3585 = 0.00%</td><td class="warn">61 / 3464 = 1.76%</td><td class="good">0 / 3588 = 0.00%</td><td class="bad">441 / 3150 = 14.00%</td><td class="bad">248 / 3389 = 7.32%</td><td>%</td><td>Bỏ HD giảm jank nhưng Mapbox 3D vẫn nặng.</td></tr>
+          <tr><td>Layer</td><td>Top cost layer</td><td><code>hd-road-polygon-street</code></td><td><code>3d-building</code></td><td><code>hd-road-polygon-street</code></td><td><code>traffic-base-level0-casing</code></td><td><code>mapbox-satellite</code></td><td><code>mapbox-satellite</code></td><td><code>hd-road-polygon-street</code></td><td><code>trees</code> basemap</td><td>-</td><td>Chỉ 3D MAPBOX bị chi phối bởi basemap 3D/symbol.</td></tr>
+          <tr><td>Temperature</td><td>Thermal</td><td class="bad">Status 3; SKIN 42.23 / 42.40</td><td class="bad">Status 3; SKIN 41.87 / 42.20</td><td class="bad">Status 2-3; SKIN 41.96 / 42.40</td><td class="bad">Status 3; SKIN 42.15 / 42.40</td><td class="bad">Status 3; SKIN 42.12 / 42.60</td><td class="good">Status 1-2; SKIN 40.11 / 40.60</td><td class="bad">Status 2-3; SKIN 42.91 / 43.70</td><td class="bad">Status 3; SKIN 43.97 / 44.20</td><td>°C</td><td>Chỉ 3D MAPBOX nóng nhất về skin trong các trace hiện có.</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:16px"><strong>Cách đọc CPU:</strong> các giá trị CPU trong bảng được quy đổi theo 1 lõi CPU. Ví dụ <strong>169%</strong> nghĩa là app đang dùng lượng CPU tương đương khoảng <strong>1.69 lõi</strong>. Nếu tính trên tổng <strong>8 core</strong> của thiết bị test thì <strong>169% / 8 = khoảng 21.1% tổng CPU</strong>. Tương tự, <strong>100%</strong> trong bảng tương đương khoảng <strong>12.5% tổng CPU</strong>.</p>
+
+    </div>
+  </section>
+
+  <section id="layers">
+    <div class="container">
+      <div class="section-head">
+        <h2>Thứ tự layer render nặng nhất</h2>
+        <p>Bảng sắp xếp theo thời gian render cộng dồn để dễ thấy layer nào xuất hiện nhiều trong chi phí render. Màu sắc không dựa vào thứ hạng, mà dựa vào mức tiêu tốn trung bình mỗi frame.</p>
+      </div>
+      <table style="margin-bottom:16px">
+        <thead><tr><th>Cột</th><th>Cách hiểu đơn giản</th><th>Cách dùng để tối ưu</th></tr></thead>
+        <tbody>
+          <tr><td>Thời gian render cộng dồn</td><td>Thời gian render riêng của layer đó được cộng dồn trong toàn bộ bài đo khoảng 120 giây. Đây không phải tổng thời gian render của cả app.</td><td>Dùng để xếp hạng layer nào tốn công vẽ nhiều hơn layer khác trong cùng tổ hợp. Màu của cột này được lấy theo mốc trung bình mỗi frame tương ứng, không lấy theo số thứ tự rank.</td></tr>
+          <tr><td>Trung bình mỗi frame</td><td>Trung bình mỗi lần vẽ màn hình, layer đó tốn bao nhiêu mili-giây.</td><td>Dùng để biết layer nào làm frame nặng đều đều trong suốt quá trình dùng bản đồ.</td></tr>
+          <tr><td>Cao nhất một frame</td><td>Lần tệ nhất layer đó làm một frame bị tốn thời gian cao nhất.</td><td>Dùng để tìm layer có thể gây giật đột ngột khi pan/zoom hoặc khi tile/layer thay đổi.</td></tr>
+        </tbody>
+      </table>
+      <table style="margin-bottom:16px">
+        <thead><tr><th>Mốc tham khảo</th><th>Ý nghĩa dễ hiểu</th><th>Lý do dùng mốc này</th></tr></thead>
+        <tbody>
+          <tr><td><strong>&lt; 0.10ms / frame</strong></td><td>Layer rất nhẹ, thường không phải nguyên nhân chính gây lag.</td><td>So với một frame 30 FPS có khoảng 33.3ms để vẽ, mức này rất nhỏ.</td></tr>
+          <tr><td><strong>0.10-0.30ms / frame</strong></td><td>Layer bắt đầu đáng chú ý khi có nhiều layer tương tự cộng lại.</td><td>Một layer riêng lẻ chưa đáng lo, nhưng 10 layer ở mức 0.30ms đã tiêu tốn khoảng 3ms mỗi frame, tức gần 9% ngân sách của 30 FPS.</td></tr>
+          <tr><td><strong>&gt; 0.30ms / frame</strong></td><td>Layer đáng đưa vào danh sách kiểm tra, đặc biệt nếu thuộc nhóm có nhiều layer tương tự.</td><td>Không có nghĩa là một layer đơn lẻ chắc chắn gây lag; ý nghĩa chính là chi phí cộng dồn của nhiều layer có thể làm FPS giảm.</td></tr>
+          <tr><td><strong>&gt; 1ms / frame</strong></td><td>Layer rất nặng hoặc có spike rõ, có thể gây cảm giác giật khi thao tác bản đồ.</td><td>1ms là khoảng 3% budget của 30 FPS và 6% budget của 60 FPS chỉ cho một layer.</td></tr>
+          <tr><td><strong>Cao nhất một frame &gt; 3ms</strong></td><td>Có nguy cơ gây giật đột ngột ở một số thời điểm.</td><td>Chỉ số này thường xuất hiện khi pan/zoom, đổi tile, hoặc layer có geometry/symbol phức tạp.</td></tr>
+        </tbody>
+      </table>
+      <h3>3D & HD Map</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Layer</th>
+            <th>Nhóm</th>
+            <th>Thời gian render cộng dồn</th>
+            <th>Trung bình mỗi frame</th>
+            <th>Cao nhất một frame</th>
+            <th>Đánh giá</th>
+            <th>Hướng xử lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="rank">1</td><td><code>hd-road-polygon-street</code></td><td>HD Road polygon</td><td class="bad">2115.49ms</td><td>0.6177ms</td><td>1.69ms</td><td><span class="severity high">Cao</span></td><td>Giảm geometry, simplification theo zoom, server tile cắt nhỏ hơn.</td></tr>
+          <tr><td class="rank">2</td><td><code>hd-road-polygon-median-strip</code></td><td>HD Road polygon</td><td class="bad">1955.81ms</td><td>0.5710ms</td><td>1.83ms</td><td><span class="severity high">Cao</span></td><td>Merge style hoặc giảm số feature median strip ở zoom xa.</td></tr>
+          <tr><td class="rank">3</td><td><code>hd-road-polygon-bridge</code></td><td>HD Road polygon</td><td class="bad">1465.66ms</td><td>0.4279ms</td><td>1.18ms</td><td><span class="severity high">Cao</span></td><td>LOD theo zoom, bỏ bridge polygon chi tiết ở low/mid zoom.</td></tr>
+          <tr><td class="rank">4</td><td><code>hd-road-polygon-median-strip-extrusion</code></td><td>FillExtrusion / 3D</td><td class="bad">1064.55ms</td><td>0.3108ms</td><td>0.78ms</td><td><span class="severity high">Cao</span></td><td>Tắt extrusion khi pitch thấp/zoom xa; chuyển sang fill 2D.</td></tr>
+          <tr><td class="rank">5</td><td><code>hd-road-polygon-tunnel</code></td><td>HD Road polygon</td><td class="warn">914.99ms</td><td>0.2671ms</td><td>1.82ms</td><td><span class="severity medium">TB</span></td><td>LOD tunnel polygon; chỉ bật khi thật sự cần nhìn chi tiết.</td></tr>
+          <tr><td class="rank">6</td><td><code>hd-road-centerline</code></td><td>Line</td><td class="warn">896.99ms</td><td>0.2618ms</td><td>1.05ms</td><td><span class="severity medium">TB</span></td><td>Simplify line, giảm overlap với road-base nếu trùng thông tin.</td></tr>
+          <tr><td class="rank">7</td><td><code>hd-road-line-dash</code></td><td>Line</td><td class="warn">819.89ms</td><td>0.2394ms</td><td>1.94ms</td><td><span class="severity medium">TB</span></td><td>Giảm dash pattern/expression, cache style constant.</td></tr>
+          <tr><td class="rank">8</td><td><code>3d-building</code></td><td>FillExtrusion / 3D building</td><td class="warn">774.01ms</td><td>0.2260ms</td><td>2.03ms</td><td><span class="severity medium">TB</span></td><td>Ẩn theo zoom/pitch, dùng min-height threshold, giảm tile density.</td></tr>
+          <tr><td class="rank">9</td><td><code>traffic-base-level0-casing</code></td><td>Traffic base line</td><td class="warn">715.63ms</td><td>0.2089ms</td><td>0.98ms</td><td><span class="severity medium">TB</span></td><td>Tách A/B traffic casing để đo lợi ích thực tế.</td></tr>
+          <tr><td class="rank">10</td><td><code>hd-road-line</code></td><td>Line / HD Road</td><td class="warn">645.47ms</td><td>0.1885ms</td><td>2.53ms</td><td><span class="severity medium">TB</span></td><td>Rà duplication giữa line/dash/centerline; dùng min/maxzoom chặt hơn.</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:22px">3D MAPBOX & HD MAP</h3>
+      <table>
+        <thead><tr><th>#</th><th>Layer</th><th>Nhóm</th><th>Thời gian render cộng dồn</th><th>Trung bình mỗi frame</th><th>Cao nhất một frame</th><th>Đánh giá</th><th>Hướng xử lý</th></tr></thead>
+        <tbody>
+          <tr><td class="rank">1</td><td><code>hd-road-polygon-street</code></td><td>HD Road polygon</td><td class="bad">1737.07ms</td><td>0.5513ms</td><td>1.54ms</td><td><span class="severity high">Cao</span></td><td>Simplify geometry/tile payload theo zoom.</td></tr>
+          <tr><td class="rank">2</td><td><code>hd-road-polygon-median-strip</code></td><td>HD Road polygon</td><td class="bad">1596.91ms</td><td>0.5068ms</td><td>1.73ms</td><td><span class="severity high">Cao</span></td><td>Giảm median strip detail khi dùng Mapbox 3D basemap.</td></tr>
+          <tr><td class="rank">3</td><td><code>poi-label</code> <span class="muted">basemap</span></td><td>Symbol / Mapbox basemap</td><td class="bad">1459.86ms</td><td>0.4633ms</td><td>1.23ms</td><td><span class="severity high">Cao</span></td><td>Giảm density/collision POI label, tắt khi đang pan/zoom nếu chấp nhận được.</td></tr>
+          <tr><td class="rank">4</td><td><code>hd-road-polygon-bridge</code></td><td>HD Road polygon</td><td class="bad">1289.08ms</td><td>0.4091ms</td><td>1.16ms</td><td><span class="severity high">Cao</span></td><td>LOD bridge polygon, chỉ bật khi zoom đủ gần.</td></tr>
+          <tr><td class="rank">5</td><td><code>3d-building</code> <span class="muted">basemap</span></td><td>FillExtrusion / Mapbox building</td><td class="bad">1227.53ms</td><td>0.3896ms</td><td>1.11ms</td><td><span class="severity high">Cao</span></td><td>Adaptive quality theo pitch/zoom; tắt building khi thermal/jank tăng.</td></tr>
+          <tr><td class="rank">6</td><td><code>trees</code> <span class="muted">basemap</span></td><td>Model/Symbol vegetation</td><td class="bad">1212.91ms</td><td>0.3849ms</td><td>1.36ms</td><td><span class="severity high">Cao</span></td><td>Tắt trees trong navigation/performance mode; kiểm tra LOD.</td></tr>
+          <tr><td class="rank">7</td><td><code>hd-road-polygon-median-strip-extrusion</code></td><td>FillExtrusion / HD Road</td><td class="warn">1046.50ms</td><td>0.3321ms</td><td>0.91ms</td><td><span class="severity high">Cao</span></td><td>Tắt extrusion khi dùng Mapbox 3D hoặc khi pitch thấp.</td></tr>
+          <tr><td class="rank">8</td><td><code>model_lyr_cauhoangvanthu-17</code></td><td>Custom model</td><td class="warn">936.17ms</td><td>0.2971ms</td><td>0.76ms</td><td><span class="severity medium">TB</span></td><td>LOD model/texture, visibility theo zoom.</td></tr>
+          <tr><td class="rank">9</td><td><code>transit-label</code> <span class="muted">basemap</span></td><td>Symbol / Mapbox basemap</td><td class="warn">894.89ms</td><td>0.2840ms</td><td>1.03ms</td><td><span class="severity medium">TB</span></td><td>Giảm label phụ khi map đang tương tác.</td></tr>
+          <tr><td class="rank">10</td><td><code>hd-road-line-dash</code></td><td>Line / HD Road</td><td class="warn">815.18ms</td><td>0.2587ms</td><td>0.76ms</td><td><span class="severity medium">TB</span></td><td>Giảm dash/expression, gom line pass nếu có thể.</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:22px">Chỉ 3D MAPBOX</h3>
+      <table>
+        <thead><tr><th>#</th><th>Layer</th><th>Nhóm</th><th>Thời gian render cộng dồn</th><th>Trung bình mỗi frame</th><th>Cao nhất một frame</th><th>Đánh giá</th><th>Hướng xử lý</th></tr></thead>
+        <tbody>
+          <tr><td class="rank">1</td><td><code>trees</code> <span class="muted">basemap</span></td><td>Mapbox 3D vegetation</td><td class="bad">1848.17ms</td><td>0.5452ms</td><td>1.80ms</td><td><span class="severity high">Cao</span></td><td>Tắt trees trong performance/navigation mode hoặc giảm LOD.</td></tr>
+          <tr><td class="rank">2</td><td><code>3d-building</code> <span class="muted">basemap</span></td><td>FillExtrusion / Mapbox building</td><td class="bad">1733.16ms</td><td>0.5113ms</td><td>1.20ms</td><td><span class="severity high">Cao</span></td><td>Adaptive building theo pitch/zoom/thermal.</td></tr>
+          <tr><td class="rank">3</td><td><code>poi-label</code> <span class="muted">basemap</span></td><td>Symbol / POI label</td><td class="bad">1707.12ms</td><td>0.5036ms</td><td>1.18ms</td><td><span class="severity high">Cao</span></td><td>Giảm label density/collision, tắt label phụ khi tương tác.</td></tr>
+          <tr><td class="rank">4</td><td><code>transit-label</code> <span class="muted">basemap</span></td><td>Symbol / transit</td><td class="warn">1181.01ms</td><td>0.3484ms</td><td>0.90ms</td><td><span class="severity medium">TB</span></td><td>Ẩn label phụ ở zoom/pitch không cần.</td></tr>
+          <tr><td class="rank">5</td><td><code>road-label</code> <span class="muted">basemap</span></td><td>Symbol / road label</td><td class="warn">958.61ms</td><td>0.2828ms</td><td>0.68ms</td><td><span class="severity medium">TB</span></td><td>Giảm text/collision cost khi đang pan/zoom.</td></tr>
+          <tr><td class="rank">6</td><td><code>road-number-shield</code> <span class="muted">basemap</span></td><td>Symbol / shield</td><td>804.70ms</td><td>0.2374ms</td><td>0.66ms</td><td><span class="severity medium">TB</span></td><td>Giảm shield density/atlas variation.</td></tr>
+          <tr><td class="rank">7</td><td><code>traffic-base-level0-casing</code></td><td>Traffic line</td><td>803.66ms</td><td>0.2371ms</td><td>0.72ms</td><td><span class="severity medium">TB</span></td><td>A/B traffic casing nếu cần tối ưu tiếp.</td></tr>
+          <tr><td class="rank">8</td><td><code>3d-events</code> <span class="muted">basemap</span></td><td>Mapbox 3D events</td><td>745.55ms</td><td>0.2199ms</td><td>0.48ms</td><td><span class="severity medium">TB</span></td><td>Kiểm tra visibility/LOD.</td></tr>
+          <tr><td class="rank">9</td><td><code>road-oneway-arrow</code> <span class="muted">basemap</span></td><td>Symbol / arrow</td><td>727.20ms</td><td>0.2145ms</td><td>0.50ms</td><td><span class="severity medium">TB</span></td><td>Giảm mật độ arrow theo zoom.</td></tr>
+          <tr><td class="rank">10</td><td><code>traffic-base-level0-casing-z11</code></td><td>Traffic line</td><td>690.70ms</td><td>0.2037ms</td><td>0.54ms</td><td><span class="severity medium">TB</span></td><td>Rà min/maxzoom traffic z11.</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:22px">Chỉ 3D</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Layer</th>
+            <th>Nhóm</th>
+            <th>Thời gian render cộng dồn</th>
+            <th>Trung bình mỗi frame</th>
+            <th>Cao nhất một frame</th>
+            <th>Đánh giá</th>
+            <th>Hướng xử lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="rank">1</td><td><code>3d-building</code></td><td>FillExtrusion / 3D building</td><td class="bad">1091.72ms</td><td>0.3049ms</td><td>5.83ms</td><td><span class="severity high">Cao</span></td><td>Adaptive quality theo pitch/zoom, min-height threshold, giảm density building tile.</td></tr>
+          <tr><td class="rank">2</td><td><code>traffic-base-level0-casing</code></td><td>Traffic base line</td><td class="warn">776.47ms</td><td>0.2169ms</td><td>1.25ms</td><td><span class="severity medium">TB</span></td><td>A/B tắt casing, kiểm tra có thể gom với base line hoặc giảm line-width.</td></tr>
+          <tr><td class="rank">3</td><td><code>traffic-base-level0-casing-z11</code></td><td>Traffic base line</td><td class="warn">702.15ms</td><td>0.1961ms</td><td>1.66ms</td><td><span class="severity medium">TB</span></td><td>Rà min/maxzoom và overscaling của nhóm z11.</td></tr>
+          <tr><td class="rank">4</td><td><code>traffic-base-level0-z11</code></td><td>Traffic base line</td><td class="warn">647.86ms</td><td>0.1810ms</td><td>1.24ms</td><td><span class="severity medium">TB</span></td><td>Giảm double pass base/casing nếu visual chấp nhận được.</td></tr>
+          <tr><td class="rank">5</td><td><code>traffic-congestion-casing-z11</code></td><td>Traffic congestion line</td><td>579.13ms</td><td>0.1618ms</td><td>5.49ms</td><td><span class="severity medium">TB</span></td><td>A/B traffic congestion casing theo zoom.</td></tr>
+          <tr><td class="rank">6</td><td><code>traffic-congestion-z11</code></td><td>Traffic congestion line</td><td>547.97ms</td><td>0.1531ms</td><td>0.89ms</td><td><span class="severity medium">TB</span></td><td>Giảm update/feature cho traffic ở zoom xa.</td></tr>
+          <tr><td class="rank">7</td><td><code>traffic-base-level0-casing-z15</code></td><td>Traffic base line</td><td>499.26ms</td><td>0.1395ms</td><td>1.06ms</td><td><span class="severity medium">TB</span></td><td>Rà duplication giữa z11/z15 và zoom transition.</td></tr>
+          <tr><td class="rank">8</td><td><code>road_one_way_arrow_big</code></td><td>Symbol / road arrow</td><td>495.95ms</td><td>0.1385ms</td><td>1.16ms</td><td><span class="severity medium">TB</span></td><td>Giảm mật độ symbol, kiểm tra collision và icon atlas.</td></tr>
+          <tr><td class="rank">9</td><td><code>traffic-base-level0-z15</code></td><td>Traffic base line</td><td>474.22ms</td><td>0.1325ms</td><td>1.20ms</td><td><span class="severity low">Thấp hơn</span></td><td>Tối ưu LOD và source tile traffic/base_roads.</td></tr>
+          <tr><td class="rank">10</td><td><code>traffic-lights-layer</code></td><td>Symbol / traffic lights</td><td>467.82ms</td><td>0.1307ms</td><td>1.13ms</td><td><span class="severity low">Thấp hơn</span></td><td>Kiểm tra density, collision, icon size theo zoom 18.</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:22px">2D & HD Map</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Layer</th>
+            <th>Nhóm</th>
+            <th>Thời gian render cộng dồn</th>
+            <th>Trung bình mỗi frame</th>
+            <th>Cao nhất một frame</th>
+            <th>Đánh giá</th>
+            <th>Hướng xử lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="rank">1</td><td><code>hd-road-polygon-street</code></td><td>HD Road polygon</td><td class="bad">1950.38ms</td><td>0.5621ms</td><td>1.53ms</td><td><span class="severity high">Cao</span></td><td>Simplify geometry theo zoom, giảm vertex count/tile payload.</td></tr>
+          <tr><td class="rank">2</td><td><code>hd-road-polygon-median-strip</code></td><td>HD Road polygon</td><td class="bad">1715.79ms</td><td>0.4945ms</td><td>1.46ms</td><td><span class="severity high">Cao</span></td><td>Giảm feature median strip ở zoom xa; cân nhắc merge style.</td></tr>
+          <tr><td class="rank">3</td><td><code>hd-road-polygon-bridge</code></td><td>HD Road polygon</td><td class="bad">1308.79ms</td><td>0.3772ms</td><td>1.34ms</td><td><span class="severity high">Cao</span></td><td>LOD bridge polygon; tắt chi tiết nếu pitch thấp/zoom chưa đủ.</td></tr>
+          <tr><td class="rank">4</td><td><code>hd-road-polygon-median-strip-extrusion</code></td><td>FillExtrusion / 3D</td><td class="bad">1040.37ms</td><td>0.2998ms</td><td>1.14ms</td><td><span class="severity high">Cao</span></td><td>Không render extrusion trong mode 2D; dùng fill 2D nếu cần.</td></tr>
+          <tr><td class="rank">5</td><td><code>hd-road-polygon-tunnel</code></td><td>HD Road polygon</td><td class="warn">847.24ms</td><td>0.2442ms</td><td>9.17ms</td><td><span class="severity medium">TB</span></td><td>Giảm LOD tunnel polygon và thuộc tính không dùng.</td></tr>
+          <tr><td class="rank">6</td><td><code>hd-road-centerline</code></td><td>Line</td><td class="warn">815.95ms</td><td>0.2351ms</td><td>1.15ms</td><td><span class="severity medium">TB</span></td><td>Simplify line, giảm overlap với road-base.</td></tr>
+          <tr><td class="rank">7</td><td><code>hd-road-line-dash</code></td><td>Line</td><td class="warn">800.14ms</td><td>0.2306ms</td><td>0.99ms</td><td><span class="severity medium">TB</span></td><td>Giảm dash/expression; chuyển style constant nếu có thể.</td></tr>
+          <tr><td class="rank">8</td><td><code>traffic-base-level0-casing</code></td><td>Traffic base line</td><td class="warn">614.58ms</td><td>0.1771ms</td><td>0.53ms</td><td><span class="severity medium">TB</span></td><td>A/B traffic casing và giảm double pass.</td></tr>
+          <tr><td class="rank">9</td><td><code>traffic-base-level0-casing-z11</code></td><td>Traffic base line</td><td>600.92ms</td><td>0.1732ms</td><td>3.28ms</td><td><span class="severity medium">TB</span></td><td>Rà min/maxzoom và overscaling nhóm z11.</td></tr>
+          <tr><td class="rank">10</td><td><code>traffic-base-level0-z11</code></td><td>Traffic base line</td><td>568.93ms</td><td>0.1640ms</td><td>0.53ms</td><td><span class="severity medium">TB</span></td><td>Rà line-width/expression và giảm double pass với centerline/dash nếu visual chấp nhận được.</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:22px">Chỉ 2D</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Layer</th>
+            <th>Nhóm</th>
+            <th>Thời gian render cộng dồn</th>
+            <th>Trung bình mỗi frame</th>
+            <th>Cao nhất một frame</th>
+            <th>Đánh giá</th>
+            <th>Hướng xử lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="rank">1</td><td><code>traffic-base-level0-casing</code></td><td>Traffic base line</td><td class="warn">969.35ms</td><td>0.2705ms</td><td>1.34ms</td><td><span class="severity medium">TB</span></td><td>A/B tắt casing hoặc giảm line-width nếu visual chấp nhận được.</td></tr>
+          <tr><td class="rank">2</td><td><code>traffic-base-level0-casing-z11</code></td><td>Traffic base line</td><td class="warn">715.17ms</td><td>0.1995ms</td><td>1.28ms</td><td><span class="severity medium">TB</span></td><td>Rà min/maxzoom và overscaling nhóm z11.</td></tr>
+          <tr><td class="rank">3</td><td><code>traffic-base-level0-z11</code></td><td>Traffic base line</td><td class="warn">664.03ms</td><td>0.1853ms</td><td>1.36ms</td><td><span class="severity medium">TB</span></td><td>Giảm double pass base/casing.</td></tr>
+          <tr><td class="rank">4</td><td><code>traffic-congestion-casing-z11</code></td><td>Traffic congestion line</td><td>574.02ms</td><td>0.1602ms</td><td>2.17ms</td><td><span class="severity medium">TB</span></td><td>Tối ưu traffic congestion casing theo zoom.</td></tr>
+          <tr><td class="rank">5</td><td><code>traffic-base-level0</code></td><td>Traffic base line</td><td>563.64ms</td><td>0.1573ms</td><td>1.23ms</td><td><span class="severity medium">TB</span></td><td>Kiểm tra traffic source update/caching.</td></tr>
+          <tr><td class="rank">6</td><td><code>traffic-congestion-z11</code></td><td>Traffic congestion line</td><td>553.53ms</td><td>0.1544ms</td><td>1.14ms</td><td><span class="severity medium">TB</span></td><td>Giảm update/feature traffic ở zoom xa.</td></tr>
+          <tr><td class="rank">7</td><td><code>traffic-congestion-casing</code></td><td>Traffic congestion line</td><td>549.29ms</td><td>0.1533ms</td><td>1.08ms</td><td><span class="severity low">Thấp hơn</span></td><td>Rà double pass casing/congestion.</td></tr>
+          <tr><td class="rank">8</td><td><code>traffic-lights-layer</code></td><td>Symbol / traffic lights</td><td>547.88ms</td><td>0.1529ms</td><td>1.11ms</td><td><span class="severity low">Thấp hơn</span></td><td>Kiểm tra density, collision và icon size.</td></tr>
+          <tr><td class="rank">9</td><td><code>traffic-congestion</code></td><td>Traffic congestion line</td><td>522.37ms</td><td>0.1458ms</td><td>2.46ms</td><td><span class="severity low">Thấp hơn</span></td><td>Giảm feature/update traffic congestion nếu visual chấp nhận.</td></tr>
+          <tr><td class="rank">10</td><td><code>traffic-base-level0-casing-z15</code></td><td>Traffic base line</td><td>495.06ms</td><td>0.1381ms</td><td>1.28ms</td><td><span class="severity low">Thấp hơn</span></td><td>Rà duplication giữa z11/z15 và zoom transition.</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:22px">Vệ tinh & HD Map</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Layer</th><th>Nhóm</th><th>Thời gian render cộng dồn</th><th>Trung bình mỗi frame</th><th>Cao nhất một frame</th><th>Đánh giá</th><th>Hướng xử lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="rank">1</td><td><code>mapbox-satellite</code></td><td>Raster / basemap</td><td class="bad">3835.30ms</td><td>1.1072ms</td><td>8.54ms</td><td><span class="severity high">Cao</span></td><td>Tối ưu raster tile size/cache; giảm opacity/pass nếu có overlay không cần thiết.</td></tr>
+          <tr><td class="rank">2</td><td><code>hd-road-polygon-street</code></td><td>HD Road polygon</td><td class="bad">2745.85ms</td><td>0.7927ms</td><td>2.14ms</td><td><span class="severity high">Cao</span></td><td>Giảm vertex count/tile payload; cân nhắc style nhẹ riêng cho satellite.</td></tr>
+          <tr><td class="rank">3</td><td><code>hd-road-polygon-median-strip</code></td><td>HD Road polygon</td><td class="bad">2644.15ms</td><td>0.7633ms</td><td>2.33ms</td><td><span class="severity high">Cao</span></td><td>Simplify geometry theo zoom; giảm median strip detail trên nền vệ tinh.</td></tr>
+          <tr><td class="rank">4</td><td><code>hd-road-polygon-bridge</code></td><td>HD Road polygon</td><td class="bad">1996.03ms</td><td>0.5762ms</td><td>2.80ms</td><td><span class="severity high">Cao</span></td><td>LOD bridge polygon, chỉ bật khi zoom đủ gần.</td></tr>
+          <tr><td class="rank">5</td><td><code>poi-label</code> <span class="muted">basemap</span></td><td>Symbol / basemap</td><td class="warn">1645.55ms</td><td>0.4752ms</td><td>1.65ms</td><td><span class="severity medium">TB</span></td><td>Giảm density/collision label trên vệ tinh nếu không cần.</td></tr>
+          <tr><td class="rank">6</td><td><code>hd-road-polygon-median-strip-extrusion</code></td><td>FillExtrusion / HD road</td><td class="warn">1530.16ms</td><td>0.4417ms</td><td>1.66ms</td><td><span class="severity high">Cao</span></td><td>Tắt extrusion trong satellite nếu pitch thấp hoặc khi thermal/jank tăng.</td></tr>
+          <tr><td class="rank">7</td><td><code>hd-road-centerline</code></td><td>Line</td><td class="warn">1377.90ms</td><td>0.3978ms</td><td>8.05ms</td><td><span class="severity medium">TB</span></td><td>Simplify line và giảm overlap với polygon street.</td></tr>
+          <tr><td class="rank">8</td><td><code>model_lyr_cauhoangvanthu-17</code></td><td>Model / custom 3D</td><td class="warn">1252.12ms</td><td>0.3616ms</td><td>1.46ms</td><td><span class="severity medium">TB</span></td><td>Kiểm tra model LOD, texture size và visibility theo zoom.</td></tr>
+          <tr><td class="rank">9</td><td><code>hd-road-polygon-tunnel</code></td><td>HD Road polygon</td><td class="warn">1181.33ms</td><td>0.3410ms</td><td>1.45ms</td><td><span class="severity medium">TB</span></td><td>Ẩn tunnel detail ở zoom xa.</td></tr>
+          <tr><td class="rank">10</td><td><code>hd-road-line-dash</code></td><td>Line</td><td class="warn">1180.21ms</td><td>0.3407ms</td><td>1.40ms</td><td><span class="severity medium">TB</span></td><td>Giảm dash/expression và kiểm tra double pass.</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:22px">Chỉ Vệ tinh</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Layer</th>
+            <th>Nhóm</th>
+            <th>Thời gian render cộng dồn</th>
+            <th>Trung bình mỗi frame</th>
+            <th>Cao nhất một frame</th>
+            <th>Đánh giá</th>
+            <th>Hướng xử lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="rank">1</td><td><code>mapbox-satellite</code></td><td>Raster / basemap</td><td class="bad">3800.70ms</td><td>1.0590ms</td><td>6.20ms</td><td><span class="severity high">Cao</span></td><td>Tối ưu raster tile size/cache; kiểm tra tile resolution và decode/upload texture.</td></tr>
+          <tr><td class="rank">2</td><td><code>poi-label</code></td><td>Symbol / basemap</td><td class="warn">1755.30ms</td><td>0.4891ms</td><td>1.42ms</td><td><span class="severity medium">TB</span></td><td>Giảm mật độ POI/collision trên vệ tinh nếu có thể.</td></tr>
+          <tr><td class="rank">3</td><td><code>transit-label</code></td><td>Symbol / basemap</td><td class="warn">1229.34ms</td><td>0.3425ms</td><td>1.19ms</td><td><span class="severity medium">TB</span></td><td>Ẩn bớt label phụ ở zoom xa hoặc khi interaction.</td></tr>
+          <tr><td class="rank">4</td><td><code>road-label</code></td><td>Symbol / basemap</td><td class="warn">1129.64ms</td><td>0.3148ms</td><td>2.31ms</td><td><span class="severity medium">TB</span></td><td>Rà text-field/collision, giảm label density.</td></tr>
+          <tr><td class="rank">5</td><td><code>road-number-shield</code></td><td>Symbol / shield</td><td>904.65ms</td><td>0.2521ms</td><td>1.85ms</td><td><span class="severity medium">TB</span></td><td>Giảm icon/text overlap và atlas variation.</td></tr>
+          <tr><td class="rank">6</td><td><code>traffic-base-level0-casing</code></td><td>Traffic base line</td><td>882.50ms</td><td>0.2459ms</td><td>1.19ms</td><td><span class="severity medium">TB</span></td><td>A/B tắt casing nếu cần tối ưu thêm sau satellite.</td></tr>
+          <tr><td class="rank">7</td><td><code>traffic-base-level0-casing-z11</code></td><td>Traffic base line</td><td>738.66ms</td><td>0.2058ms</td><td>1.80ms</td><td><span class="severity medium">TB</span></td><td>Rà min/maxzoom và overscaling nhóm z11.</td></tr>
+          <tr><td class="rank">8</td><td><code>traffic-base-level0-z11</code></td><td>Traffic base line</td><td>670.04ms</td><td>0.1867ms</td><td>1.03ms</td><td><span class="severity low">Thấp hơn</span></td><td>Giảm double pass base/casing nếu visual chấp nhận được.</td></tr>
+          <tr><td class="rank">9</td><td><code>building-number-label</code></td><td>Symbol / basemap</td><td>621.79ms</td><td>0.1732ms</td><td>0.82ms</td><td><span class="severity low">Thấp hơn</span></td><td>Ẩn label phụ theo zoom/pitch.</td></tr>
+          <tr><td class="rank">10</td><td><code>gate-label</code></td><td>Symbol / basemap</td><td>618.85ms</td><td>0.1724ms</td><td>1.06ms</td><td><span class="severity low">Thấp hơn</span></td><td>Giảm density/collision nếu cần.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="cpu">
+    <div class="container">
+      <div class="section-head">
+        <h2>CPU & Memory</h2>
+        <p>Phần này so sánh CPU và RAM theo từng tổ hợp. Tên chỉ số được viết theo dạng dễ hiểu, kèm thuật ngữ kỹ thuật trong ngoặc để đội kỹ thuật có thể đối chiếu khi phân tích trace.</p>
+      </div>
+      <table style="margin-bottom:16px">
+        <thead><tr><th>Thuật ngữ</th><th>Cách hiểu cho người không chuyên</th><th>Cách hiểu kỹ thuật</th></tr></thead>
+        <tbody>
+          <tr><td>CPU app</td><td>Mức độ app bắt máy xử lý nhiều hay ít khi chạy bản đồ.</td><td>Tổng CPU time của process <code>com.gofa.mobile</code>, quy đổi theo 1 core CPU.</td></tr>
+          <tr><td>Luồng render Mapbox</td><td>Phần chuyên vẽ bản đồ. Cao nghĩa là bản đồ tốn công vẽ.</td><td>Thread <code>MapboxRenderThr</code>, nơi Mapbox render frame/style/layer.</td></tr>
+          <tr><td>Luồng chính</td><td>Phần điều khiển giao diện. Cao quá có thể làm app phản hồi chậm.</td><td>Main/UI thread của process app.</td></tr>
+          <tr><td>JIT</td><td>Phần hệ thống tối ưu mã trong lúc app chạy.</td><td><code>Jit thread pool</code>, liên quan runtime compilation/optimization.</td></tr>
+          <tr><td>RAM app dùng</td><td>Lượng RAM app đang chiếm trên thiết bị.</td><td><code>mem.rss</code>; số trước là avg, số sau là max trong trace.</td></tr>
+          <tr><td>RAM ảo / swap</td><td>Bộ nhớ tạm hệ thống dùng khi RAM căng.</td><td><code>mem.swap</code>; cao kéo dài có thể gây chậm do paging.</td></tr>
+        </tbody>
+      </table>
+      <table>
+        <thead>
+          <tr>
+            <th>Chỉ số CPU / RAM</th>
+            <th>3D & HD Map</th>
+            <th>Chỉ 3D</th>
+            <th>2D & HD Map</th>
+            <th>Chỉ 2D</th>
+            <th>Vệ tinh & HD Map</th>
+            <th>Chỉ Vệ tinh</th>
+            <th>3D MAPBOX & HD MAP</th>
+            <th>Chỉ 3D MAPBOX</th>
+            <th>Đánh giá</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>CPU app dùng trung bình (<code>process CPU</code>)</td><td class="bad">167.36%</td><td class="warn">134.37%</td><td class="bad">160.64%</td><td class="warn">130.86%</td><td class="bad">168.21%</td><td class="good">87.59%</td><td class="bad">169.15%</td><td class="bad">160.24%</td><td>Cho biết app dùng bao nhiêu CPU khi chạy bản đồ. Cao hơn nghĩa là máy phải làm việc nhiều hơn.</td></tr>
+          <tr><td>Luồng vẽ bản đồ Mapbox (<code>MapboxRenderThr</code>)</td><td class="bad">73.34%</td><td class="warn">68.37%</td><td class="bad">72.27%</td><td class="warn">66.70%</td><td class="warn">69.23%</td><td class="good">43.45%</td><td class="bad">81.74%</td><td class="bad">84.53%</td><td>Phần CPU chuyên dùng để vẽ bản đồ. Cao hơn nghĩa là bản đồ tốn công vẽ hơn.</td></tr>
+          <tr><td>Luồng chính của app (<code>main/UI thread</code>)</td><td class="warn">42.14%</td><td class="warn">35.91%</td><td class="warn">39.96%</td><td class="warn">36.04%</td><td class="warn">40.84%</td><td class="good">24.57%</td><td class="warn">37.51%</td><td class="warn">40.72%</td><td>Luồng điều khiển giao diện chính. Nếu cao quá, app có thể phản hồi chậm khi người dùng thao tác.</td></tr>
+          <tr><td>Luồng biên dịch/tối ưu mã khi chạy (<code>Jit thread pool</code>)</td><td class="warn">20.09%</td><td class="good">8.27%</td><td class="warn">18.24%</td><td class="good">8.45%</td><td class="warn">19.12%</td><td class="good">5.45%</td><td class="warn">18.46%</td><td class="good">10.01%</td><td>CPU dùng cho việc biên dịch/tối ưu mã trong lúc chạy. Cao kéo dài có thể làm app tốn CPU hơn.</td></tr>
+          <tr><td>Các luồng xử lý nền Mapbox (<code>MB Worker U*</code>)</td><td>~14.36%</td><td>~12.61%</td><td>~14.57%</td><td>~11.99%</td><td>~15.33%</td><td class="good">~7.90%</td><td>~14.40%</td><td>~14.41%</td><td>Các tác vụ nền của Mapbox như chuẩn bị dữ liệu/tile/style. Cao hơn nghĩa là xử lý nền bản đồ nhiều hơn.</td></tr>
+          <tr><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="warn">691.75 / 740.46 MB</td><td class="warn">615.25 / 665.76 MB</td><td class="warn">609.73 / 673.44 MB</td><td class="good">557.81 / 601.23 MB</td><td class="good">535.78 / 630.61 MB</td><td class="good">500.89 / 610.69 MB</td><td class="warn">666.99 / 713.29 MB</td><td class="warn">605.83 / 663.00 MB</td><td>Lượng RAM app đang chiếm. Số trước là trung bình, số sau là mức cao nhất trong bài đo.</td></tr>
+          <tr><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="good">17.52 / 17.56 MB</td><td class="good">17.43 / 17.46 MB</td><td class="good">17.46 / 17.51 MB</td><td class="good">17.46 / 17.51 MB</td><td class="warn">61.92 / 102.58 MB</td><td class="good">17.46 / 17.49 MB</td><td class="good">17.48 / 17.53 MB</td><td class="good">17.48 / 17.53 MB</td><td>RAM ảo hệ thống phải dùng khi RAM căng. Giá trị thấp và ổn định nghĩa là chưa có dấu hiệu thiếu RAM nghiêm trọng.</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:16px">Các bảng dưới đây cho biết thành phần nào đang dùng CPU/RAM nhiều nhất trong từng tổ hợp.</p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <h3>Diễn biến CPU theo thời gian</h3>
+          <div class="chart-wrap"><canvas id="cpuChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Các thành phần dùng CPU nhiều nhất theo tổ hợp</h3>
+          <div class="chart-wrap"><canvas id="threadChart"></canvas></div>
+        </div>
+      </div>
+      <table style="margin-top:16px">
+        <thead><tr><th>Thành phần CPU</th><th>3D & HD Map</th><th>Chỉ 3D</th><th>2D & HD Map</th><th>Chỉ 2D</th><th>Vệ tinh & HD Map</th><th>Chỉ Vệ tinh</th><th>3D MAPBOX & HD MAP</th><th>Chỉ 3D MAPBOX</th><th>Đánh giá</th></tr></thead>
+        <tbody>
+          <tr><td>Toàn bộ app (<code>com.gofa.mobile</code>)</td><td class="bad">200.71s / 167.36%</td><td class="warn">161.15s / 134.37%</td><td class="bad">192.69s / 160.64%</td><td class="warn">156.95s / 130.86%</td><td class="bad">201.74s / 168.21%</td><td class="good">105.09s / 87.59%</td><td class="bad">202.93s / 169.15%</td><td class="bad">192.22s / 160.24%</td><td>Tổng CPU toàn app trong bài đo. Dùng để biết tổ hợp nào làm máy phải xử lý nhiều nhất.</td></tr>
+          <tr><td>Luồng vẽ bản đồ Mapbox (<code>MapboxRenderThr</code>)</td><td class="bad">87.95s / 73.34%</td><td class="warn">82.00s / 68.37%</td><td class="bad">86.69s / 72.27%</td><td class="warn">80.00s / 66.70%</td><td class="warn">83.03s / 69.23%</td><td class="good">52.13s / 43.45%</td><td class="bad">98.07s / 81.74%</td><td class="bad">101.40s / 84.53%</td><td>CPU riêng cho việc vẽ bản đồ Mapbox. Đây là điểm cần chú ý nhất khi FPS thấp hoặc map bị giật.</td></tr>
+          <tr><td>Luồng chính của app (<code>main</code>)</td><td class="warn">50.53s / 42.14%</td><td class="warn">43.06s / 35.91%</td><td class="warn">47.94s / 39.96%</td><td class="warn">43.22s / 36.04%</td><td class="warn">48.99s / 40.84%</td><td class="good">29.48s / 24.57%</td><td class="warn">45.01s / 37.51%</td><td class="warn">48.85s / 40.72%</td><td>Luồng điều khiển giao diện chính. Nếu cao quá, app có thể phản hồi chậm khi người dùng thao tác.</td></tr>
+          <tr><td>Luồng biên dịch/tối ưu mã khi chạy (<code>Jit thread pool</code>)</td><td class="warn">24.09s / 20.09%</td><td class="good">9.74s / 8.12%</td><td class="warn">21.88s / 18.24%</td><td class="good">9.69s / 8.08%</td><td class="warn">22.97s / 19.15%</td><td class="good">6.54s / 5.45%</td><td class="warn">22.15s / 18.46%</td><td class="good">12.01s / 10.01%</td><td>CPU dùng cho biên dịch/tối ưu mã khi chạy. Dùng để nhận biết app có phát sinh nhiều xử lý runtime hay không.</td></tr>
+          <tr><td>Các luồng xử lý nền Mapbox (<code>MB Worker U*</code>)</td><td>~17.23s / ~14.36%</td><td>~15.49s / ~12.76%</td><td>~17.47s / ~14.57%</td><td>~14.07s / ~11.73%</td><td>~18.39s / ~15.33%</td><td class="good">~9.47s / ~7.90%</td><td>~17.28s / ~14.40%</td><td>~17.30s / ~14.41%</td><td>Các luồng nền Mapbox xử lý dữ liệu bản đồ. Cao hơn nghĩa là app đang chuẩn bị nhiều dữ liệu để render.</td></tr>
+        </tbody>
+      </table>
+      <table style="margin-top:16px">
+        <thead><tr><th>Chỉ số RAM kỹ thuật</th><th>3D & HD Map</th><th>Chỉ 3D</th><th>2D & HD Map</th><th>Chỉ 2D</th><th>Vệ tinh & HD Map</th><th>Chỉ Vệ tinh</th><th>3D MAPBOX & HD MAP</th><th>Chỉ 3D MAPBOX</th><th>Đánh giá</th></tr></thead>
+        <tbody>
+          <tr><td><code>mem.rss</code></td><td class="warn">691.75 / 740.46 MB</td><td class="warn">615.25 / 665.76 MB</td><td class="warn">609.73 / 673.44 MB</td><td class="good">557.81 / 601.23 MB</td><td class="good">535.78 / 630.61 MB</td><td class="good">500.89 / 610.69 MB</td><td class="warn">666.99 / 713.29 MB</td><td class="warn">605.83 / 663.00 MB</td><td>Lượng RAM app đang chiếm. Số trước là trung bình, số sau là mức cao nhất trong bài đo.</td></tr>
+          <tr><td><code>mem.swap</code></td><td class="good">17.52 / 17.56 MB</td><td class="good">17.43 / 17.46 MB</td><td class="good">17.46 / 17.51 MB</td><td class="good">17.46 / 17.51 MB</td><td class="warn">61.92 / 102.58 MB</td><td class="good">17.46 / 17.49 MB</td><td class="good">17.48 / 17.53 MB</td><td class="good">17.48 / 17.53 MB</td><td>RAM ảo hệ thống phải dùng khi RAM căng. Giá trị thấp và ổn định nghĩa là chưa có dấu hiệu thiếu RAM nghiêm trọng.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="gpu">
+    <div class="container">
+      <div class="section-head">
+        <h2>GPU / Render Pipeline</h2>
+        <p>Phần này so sánh GPU memory và Mapbox render pipeline theo các tổ hợp đã đo. Thiết bị không expose GPU utilization/frequency/work period, nên hiện dùng GPU memory + render slices để đánh giá tải render.</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Metric GPU / Render</th>
+            <th>3D & HD Map</th>
+            <th>Chỉ 3D</th>
+            <th>2D & HD Map</th>
+            <th>Chỉ 2D</th>
+            <th>Vệ tinh & HD Map</th>
+            <th>Chỉ Vệ tinh</th>
+            <th>3D MAPBOX & HD MAP</th>
+            <th>Chỉ 3D MAPBOX</th>
+            <th>Đánh giá</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>GPU memory avg / max</td><td class="warn">268.99 / 270.30 MB</td><td class="good">178.88 / 183.90 MB</td><td class="warn">243.71 / 246.21 MB</td><td class="good">155.65 / 157.33 MB</td><td class="bad">441.57 / 460.11 MB</td><td class="warn">321.73 / 338.74 MB</td><td class="bad">328.06 / 337.27 MB</td><td class="warn">221.70 / 230.85 MB</td><td>Bỏ HD Map giảm GPU Memory app-like track khoảng 106 MB.</td></tr>
+          <tr><td><code>mbx: maps: render</code> avg / max</td><td class="bad">23.78 / 43.21 ms</td><td class="good">21.63 / 47.99 ms</td><td class="bad">23.16 / 55.40 ms</td><td class="good">20.97 / 31.72 ms</td><td class="warn">21.94 / 63.89 ms</td><td class="good">12.51 / 25.94 ms</td><td class="bad">29.37 / 66.81 ms</td><td class="bad">28.46 / 55.54 ms</td><td>Chỉ 3D MAPBOX vẫn nặng do basemap 3D/symbol.</td></tr>
+          <tr><td><code>render_tree_render</code> avg / max</td><td class="warn">13.84 / 29.68 ms</td><td class="good">11.45 / 26.94 ms</td><td class="warn">13.66 / 32.82 ms</td><td class="good">11.83 / 25.67 ms</td><td class="warn">13.49 / 24.87 ms</td><td class="good">7.65 / 19.48 ms</td><td class="bad">15.32 / 37.68 ms</td><td class="bad">13.98 / 30.15 ms</td><td>Render tree giảm khi bỏ HD nhưng vẫn cao.</td></tr>
+          <tr><td><code>render_pass_translucent</code> avg / max</td><td class="warn">11.81 / 26.70 ms</td><td class="good">9.30 / 24.85 ms</td><td class="warn">11.60 / 22.37 ms</td><td class="good">9.70 / 19.25 ms</td><td class="warn">10.88 / 21.14 ms</td><td class="good">5.97 / 10.02 ms</td><td class="bad">12.79 / 32.52 ms</td><td class="warn">11.59 / 26.31 ms</td><td>Translucent pass vẫn cao do basemap 3D/symbol.</td></tr>
+          <tr><td>Top render layer</td><td><code>hd-road-polygon-street</code></td><td><code>3d-building</code></td><td><code>hd-road-polygon-street</code></td><td><code>traffic-base-level0-casing</code></td><td><code>mapbox-satellite</code></td><td><code>mapbox-satellite</code></td><td><code>hd-road-polygon-street</code></td><td><code>trees</code> basemap</td><td>Chỉ 3D MAPBOX bị chi phối bởi basemap 3D/symbol.</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:16px">Các chart bên dưới đã hiển thị các tổ hợp hiện có dữ liệu. Khi có thêm trace, các tổ hợp mới sẽ được thêm vào cùng chart.</p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <h3>Mapbox render pipeline theo tổ hợp</h3>
+          <div class="chart-wrap"><canvas id="pipelineChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Layer render cost theo thứ hạng</h3>
+          <div class="chart-wrap"><canvas id="layerChart"></canvas></div>
+        </div>
+      </div>
+      <table style="margin-top:16px">
+        <thead><tr><th>Slice</th><th>3D & HD Map</th><th>Chỉ 3D</th><th>2D & HD Map</th><th>Chỉ 2D</th><th>Vệ tinh & HD Map</th><th>Chỉ Vệ tinh</th><th>3D MAPBOX & HD MAP</th><th>Chỉ 3D MAPBOX</th><th>Nhận định</th></tr></thead>
+        <tbody>
+          <tr><td><code>mbx: maps: render</code></td><td class="bad">81432.62ms / 23.77ms avg</td><td class="good">77420.75ms / 21.63ms avg</td><td class="bad">80351.69ms / 23.16ms avg</td><td class="good">75162.32ms / 20.97ms avg</td><td class="warn">75999.51ms / 21.94ms avg</td><td class="good">44901.29ms / 12.51ms avg</td><td class="bad">92527.18ms / 29.37ms avg</td><td class="bad">96445.39ms / 28.46ms avg</td><td>Chỉ 3D MAPBOX nhiều frame hơn nhưng avg vẫn cao.</td></tr>
+          <tr><td><code>render_tree_render</code></td><td class="warn">47428.49ms / 13.84ms avg</td><td class="good">41050.89ms / 11.45ms avg</td><td class="warn">47079.79ms / 13.66ms avg</td><td class="good">42397.43ms / 11.83ms avg</td><td class="warn">46473.49ms / 13.49ms avg</td><td class="good">27446.48ms / 7.65ms avg</td><td class="bad">48257.31ms / 15.32ms avg</td><td class="bad">47388.13ms / 13.98ms avg</td><td>Render tree vẫn cao ở Mapbox 3D only.</td></tr>
+          <tr><td><code>render_pass_translucent</code></td><td class="warn">40470.22ms / 11.81ms avg</td><td class="good">33322.92ms / 9.30ms avg</td><td class="warn">39999.13ms / 11.60ms avg</td><td class="good">34757.34ms / 9.70ms avg</td><td class="warn">37490.27ms / 10.88ms avg</td><td class="good">21431.20ms / 5.97ms avg</td><td class="bad">40297.47ms / 12.79ms avg</td><td class="warn">39274.56ms / 11.59ms avg</td><td>Translucent pass vẫn cao dù bỏ HD.</td></tr>
+          <tr><td><code>CreateRenderTree</code></td><td>31221.88ms / 9.11ms avg</td><td>31483.82ms / 8.79ms avg</td><td>31236.18ms / 9.06ms avg</td><td>30051.92ms / 8.38ms avg</td><td>27363.81ms / 7.90ms avg</td><td class="good">16620.42ms / 4.63ms avg</td><td class="bad">41380.54ms / 13.14ms avg</td><td class="bad">45517.27ms / 13.43ms avg</td><td>CreateRenderTree cao nhất ở Chỉ 3D MAPBOX.</td></tr>
+          <tr><td><code>GPU completion</code></td><td>Không có % GPU</td><td>Không có % GPU</td><td>Không có % GPU</td><td>Không có % GPU</td><td>Không có % GPU</td><td>Không có % GPU</td><td>Không có % GPU</td><td>Không có % GPU</td><td>Cần vendor/GPU counters nếu thiết bị expose.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="fps">
+    <div class="container">
+      <div class="section-head">
+        <h2>FPS & Jank</h2>
+        <p>Phần này so sánh FPS, frame time và jank theo các tổ hợp đã đo. Ưu tiên Mapbox render loop vì ổn định hơn FrameTimeline app layer khi có Buffer/SF Stuffing.</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Metric FPS / Jank</th>
+            <th>3D & HD Map</th>
+            <th>Chỉ 3D</th>
+            <th>2D & HD Map</th>
+            <th>Chỉ 2D</th>
+            <th>Vệ tinh & HD Map</th>
+            <th>Chỉ Vệ tinh</th>
+            <th>3D MAPBOX & HD MAP</th>
+            <th>Chỉ 3D MAPBOX</th>
+            <th>Đánh giá</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Mapbox render frames</td><td>3425</td><td>3585</td><td>3469</td><td>3584</td><td>3446</td><td>3588</td><td>3150</td><td>3389</td><td>Đã có đủ 8 trace để so sánh.</td></tr>
+          <tr><td>FPS ước tính</td><td class="warn">28.56</td><td class="good">29.85</td><td class="warn">28.92</td><td class="good">29.89</td><td class="warn">28.88</td><td class="good">29.92</td><td class="bad">26.26</td><td class="warn">28.25</td><td>3D MAPBOX & HD MAP thấp nhất.</td></tr>
+          <tr><td>Frame avg</td><td class="bad">23.78 ms</td><td class="good">21.63 ms</td><td class="bad">23.16 ms</td><td class="good">20.97 ms</td><td class="good">21.94 ms</td><td class="good">12.51 ms</td><td class="bad">29.37 ms</td><td class="bad">28.46 ms</td><td>Hai mode Mapbox 3D đều nặng về frame avg.</td></tr>
+          <tr><td>Frame P95</td><td class="bad">32.08 ms</td><td class="good">26.80 ms</td><td class="warn">30.70 ms</td><td class="good">25.72 ms</td><td class="good">29.60 ms</td><td class="good">18.67 ms</td><td class="bad">38.04 ms</td><td class="bad">34.57 ms</td><td>Bỏ HD giảm P95 nhưng vẫn cao.</td></tr>
+          <tr><td>Frame P99</td><td class="bad">36.82 ms</td><td class="good">28.91 ms</td><td class="bad">36.03 ms</td><td class="good">28.13 ms</td><td class="warn">35.74 ms</td><td class="good">21.76 ms</td><td class="bad">51.86 ms</td><td class="bad">41.90 ms</td><td>Bỏ HD giảm P99 nhưng vẫn vượt 33.3ms budget.</td></tr>
+          <tr><td>Frames &gt; 33.3ms</td><td class="bad">128 / 3425 = 3.74%</td><td class="good">7 / 3580 = 0.20%</td><td class="warn">87 / 3469 = 2.51%</td><td class="good">0 / 3585 = 0.00%</td><td class="warn">61 / 3464 = 1.76%</td><td class="good">0 / 3588 = 0.00%</td><td class="bad">441 / 3150 = 14.00%</td><td class="bad">248 / 3389 = 7.32%</td><td>Bỏ HD giảm jank khoảng một nửa.</td></tr>
+          <tr><td>Frozen frames &gt;700ms</td><td class="good">Không thấy</td><td class="good">Không thấy</td><td class="good">Không thấy</td><td class="good">Không thấy</td><td class="good">Không thấy</td><td class="good">Không thấy</td><td class="good">Không thấy &gt;700ms</td><td class="good">Không thấy &gt;700ms</td><td>Không có freeze dài, nhưng có nhiều frame &gt;50ms.</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:16px">Các chart bên dưới đã hiển thị các tổ hợp hiện có dữ liệu. Khi có thêm trace, các tổ hợp mới sẽ được thêm vào cùng chart.</p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <h3>Frame time percentiles</h3>
+          <div class="chart-wrap"><canvas id="frameChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Frames &gt;33.3ms theo tổ hợp</h3>
+          <div class="chart-wrap"><canvas id="jankChart"></canvas></div>
+        </div>
+      </div>
+      <table style="margin-top:16px">
+        <thead><tr><th>Metric</th><th>3D & HD Map</th><th>Chỉ 3D</th><th>2D & HD Map</th><th>Chỉ 2D</th><th>Vệ tinh & HD Map</th><th>Chỉ Vệ tinh</th><th>3D MAPBOX & HD MAP</th><th>Chỉ 3D MAPBOX</th><th>Đánh giá</th></tr></thead>
+        <tbody>
+          <tr><td>Mapbox render frames</td><td>3425</td><td>3585</td><td>3469</td><td>3584</td><td>3446</td><td>3588</td><td>3150</td><td>3389</td><td>Đã có đủ 8 trace để đánh giá render loop.</td></tr>
+          <tr><td>FPS ước tính</td><td class="warn">28.56 FPS</td><td class="good">29.89 FPS</td><td class="warn">28.92 FPS</td><td class="good">29.89 FPS</td><td class="warn">28.73 FPS</td><td class="good">29.92 FPS</td><td class="bad">26.26 FPS</td><td class="warn">28.25 FPS</td><td>3D MAPBOX & HD MAP thấp nhất.</td></tr>
+          <tr><td>Frame time avg / P95 / P99</td><td class="bad">23.78 / 32.08 / 36.82ms</td><td class="good">21.63 / 26.80 / 28.91ms</td><td class="bad">23.16 / 30.70 / 36.03ms</td><td class="good">20.97 / 25.72 / 28.13ms</td><td class="warn">21.94 / 29.60 / 35.74ms</td><td class="good">12.51 / 18.67 / 21.76ms</td><td class="bad">29.37 / 38.04 / 51.86ms</td><td class="bad">28.46 / 34.57 / 41.90ms</td><td>Chỉ 3D MAPBOX vẫn có frame time xấu.</td></tr>
+          <tr><td>Frames &gt; 33.3ms</td><td class="bad">128 / 3425 = 3.74%</td><td class="good">7 / 3580 = 0.20%</td><td class="warn">87 / 3469 = 2.51%</td><td class="good">0 / 3585 = 0.00%</td><td class="warn">61 / 3464 = 1.76%</td><td class="good">0 / 3588 = 0.00%</td><td class="bad">441 / 3150 = 14.00%</td><td class="bad">248 / 3389 = 7.32%</td><td>Mapbox basemap 3D/symbol là nguồn jank còn lại.</td></tr>
+          <tr><td>Frozen frames</td><td class="good">Không thấy &gt;700ms</td><td class="good">Không thấy &gt;700ms</td><td class="good">Không thấy &gt;700ms</td><td class="good">Không thấy &gt;700ms</td><td class="good">Không thấy &gt;700ms</td><td class="good">Không thấy &gt;700ms</td><td class="good">Không thấy &gt;700ms</td><td class="good">Không thấy &gt;700ms</td><td>Không có freeze dài, nhưng có nhiều frame &gt;50ms.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="temperature">
+    <div class="container">
+      <div class="section-head">
+        <h2>Phân tích nhiệt độ / Thermal</h2>
+        <p>Các trace đã đo được chạy kèm thermal log song song. Perfetto chỉ có <code>ThermalManagerService.status</code>, còn nhiệt độ chi tiết lấy từ các file <code>thermal-*.log</code>.</p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Metric thermal</th>
+            <th>3D & HD Map</th>
+            <th>Chỉ 3D</th>
+            <th>2D & HD Map</th>
+            <th>Chỉ 2D</th>
+            <th>Vệ tinh & HD Map</th>
+            <th>Chỉ Vệ tinh</th>
+            <th>3D MAPBOX & HD MAP</th>
+            <th>Chỉ 3D MAPBOX</th>
+            <th>Trạng thái</th>
+            <th>Cách đọc</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>AP / CPU-zone avg / max</td><td class="warn">45.19 / 45.60°C</td><td class="warn">44.67 / 45.50°C</td><td class="warn">45.11 / 46.10°C</td><td class="warn">44.87 / 45.80°C</td><td class="warn">45.39 / 46.70°C</td><td class="good">42.61 / 43.40°C</td><td class="bad">46.75 / 48.50°C</td><td class="bad">47.26 / 48.20°C</td><td><span class="severity medium">Cảnh báo</span></td><td>Chỉ Vệ tinh giảm AP temperature rõ.</td></tr>
+          <tr><td>GPU temperature avg / max</td><td class="warn">gpuss avg ~49.20, max 50.30°C</td><td class="warn">gpuss avg ~48.39, max 49.90°C</td><td class="warn">gpuss avg ~48.88, max 51.10°C</td><td class="warn">gpuss avg ~48.48, max 50.30°C</td><td class="warn">gpuss avg ~49.55, max 51.90°C</td><td class="warn">gpuss avg ~46.05, max 47.90°C</td><td class="bad">gpuss avg ~51.10, max 53.50°C</td><td class="bad">gpuss avg ~51.03, max 53.10°C</td><td><span class="severity medium">Có sysfs</span></td><td>GPU temp riêng lấy từ sysfs thermal zones <code>gpuss-*</code>; nếu Perfetto không expose GPU frequency/utilization thì vẫn đọc được nhiệt qua thermal log song song.</td></tr>
+          <tr><td>Skin avg / max</td><td class="bad">42.23 / 42.40°C</td><td class="bad">41.87 / 42.20°C</td><td class="bad">42.26 / 42.50°C</td><td class="bad">42.15 / 42.40°C</td><td class="bad">42.12 / 42.60°C</td><td class="good">40.11 / 40.60°C</td><td class="bad">42.91 / 43.70°C</td><td class="bad">43.97 / 44.20°C</td><td><span class="severity high">Nóng</span></td><td>Chỉ Vệ tinh thấp nhất về skin temperature.</td></tr>
+          <tr><td>Battery avg / max</td><td class="warn">39.59 / 39.80°C</td><td class="warn">39.63 / 39.80°C</td><td class="warn">39.66 / 39.90°C</td><td class="warn">39.88 / 40.00°C</td><td class="warn">39.59 / 40.00°C</td><td class="good">37.68 / 38.20°C</td><td class="warn">40.10 / 40.90°C</td><td class="bad">41.41 / 41.50°C</td><td><span class="severity medium">Cảnh báo</span></td><td>BAT thấp hơn các run trước.</td></tr>
+          <tr><td>Thermal status</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="good">status 1-2, max 2</td><td class="bad">avg 2.85, max 3</td><td class="bad">avg 3.00, max 3</td><td><span class="severity high">Nặng</span></td><td>Chỉ Vệ tinh chưa vào status 3.</td></tr>
+          <tr><td>Tương quan FPS - thermal</td><td class="bad">FPS 28.56, P99 36.82ms</td><td class="good">FPS 29.85, P99 28.91ms</td><td class="warn">FPS 28.92, P99 36.03ms</td><td class="good">FPS 29.89, P99 28.13ms</td><td class="warn">FPS 28.88, P99 35.74ms</td><td class="good">FPS 29.92, P99 21.76ms</td><td class="bad">FPS 26.26, P99 51.86ms</td><td class="bad">FPS 28.25, P99 41.90ms</td><td><span class="severity medium">Cần kiểm soát nhiệt</span></td><td>Bỏ HD Map cải thiện cả thermal và jank.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="grid-2" style="margin-top:16px">
+        <div class="chart-card">
+          <h3>Ngưỡng đánh giá thermal</h3>
+          <table>
+            <thead><tr><th>Mức</th><th>Điều kiện tham khảo</th><th>Ý nghĩa</th><th>Hành động</th></tr></thead>
+            <tbody>
+              <tr><td><span class="severity low">Tốt</span></td><td>CPU/GPU/Skin ổn định, không có throttling status</td><td>Chưa thấy nhiệt ảnh hưởng render.</td><td>Ưu tiên tối ưu layer/render nếu FPS vẫn thấp.</td></tr>
+              <tr><td><span class="severity medium">Cảnh báo</span></td><td>Nhiệt tăng liên tục hoặc thermal status bắt đầu khác nominal</td><td>Có nguy cơ FPS tụt sau vài phút.</td><td>Bật adaptive quality cho 3D/HD Road.</td></tr>
+              <tr><td><span class="severity high">Nặng</span></td><td>Thermal throttling xuất hiện cùng CPU/GPU freq giảm và frame P95/P99 tăng</td><td>Nhiệt đang trực tiếp gây lag/jank.</td><td>Giảm workload ngay: ẩn extrusion/building, giảm update/camera animation.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="recommendations">
+    <div class="container">
+      <div class="section-head">
+        <h2>Khuyến nghị tối ưu hóa</h2>
+        <p>Khuyến nghị được chia theo từng tổ hợp bản đồ để đội app/server biết cần xử lý gì nhằm giảm tải render, giảm jank và hạn chế tăng nhiệt.</p>
+      </div>
+
+      <table style="margin-bottom:16px">
+        <thead><tr><th>Tổ hợp</th><th>Vấn đề chính</th><th>Việc cần làm trên app</th><th>Việc cần làm trên server / tiles</th><th>Mục tiêu sau tối ưu</th></tr></thead>
+        <tbody>
+          <tr><td><strong>3D & HD Map</strong></td><td>HD Road polygon/extrusion đứng đầu layer cost; RAM app cao nhất trong bộ đo.</td><td>Giảm/tắt extrusion và chi tiết HD Road khi zoom xa, pitch thấp hoặc đang pan/zoom. Ưu tiên nhóm <code>hd-road-polygon-*</code>, <code>hd-road-line-dash</code>, <code>3d-building</code>.</td><td>Simplify geometry theo zoom cho street, median strip, bridge, tunnel; giảm vertex và thuộc tính không dùng.</td><td>Giảm render avg/P95, giảm frame &gt;33.3ms và giữ RAM app ổn định hơn khi dùng lâu.</td></tr>
+          <tr><td><strong>Chỉ 3D</strong></td><td>Tải giảm so với 3D & HD Map nhưng vẫn có 3D building và traffic line/casing.</td><td>Áp dụng adaptive quality cho <code>3d-building</code>; giảm traffic casing/dash khi map đang thao tác.</td><td>Giảm density building/traffic theo zoom; tránh gửi traffic geometry quá chi tiết khi không cần.</td><td>Giữ P95/P99 ổn định, hạn chế tăng nhiệt trong chế độ 3D không có HD Map.</td></tr>
+          <tr><td><strong>2D & HD Map</strong></td><td>HD Road vẫn là nguồn tăng tải chính dù không dùng 3D camera.</td><td>Không render extrusion trong mode 2D; giảm chi tiết polygon/line HD Road ở zoom chưa cần.</td><td>Tạo tile/style riêng cho 2D: bỏ geometry 3D, giảm bridge/tunnel/median strip detail.</td><td>Đưa P99 về gần mức Chỉ 2D và giảm frame &gt;33.3ms.</td></tr>
+          <tr><td><strong>Chỉ 2D</strong></td><td>Nhẹ hơn các mode HD; tải chủ yếu còn ở traffic line/casing.</td><td>Giữ làm baseline hiệu năng. Chỉ tối ưu traffic casing/dash nếu cần thêm margin.</td><td>Rà min/maxzoom và payload cho <code>traffic</code>, <code>base_roads</code>.</td><td>Duy trì 0% frame &gt;33.3ms và dùng làm mốc so sánh sau mỗi thay đổi.</td></tr>
+          <tr><td><strong>Vệ tinh & HD Map</strong></td><td>GPU memory cao nhất do raster satellite + HD overlay.</td><td>Dùng style HD overlay nhẹ trên nền vệ tinh: giảm polygon phụ, extrusion, label/symbol không cần thiết; kiểm soát tile/cache khi đổi zoom.</td><td>Tạo tile/LOD riêng cho satellite overlay; giảm payload HD Road và tránh gửi chi tiết không nhìn rõ trên nền vệ tinh.</td><td>Giảm GPU memory, giảm nhiệt GPU/skin và không làm FPS/jank xấu hơn.</td></tr>
+          <tr><td><strong>Chỉ Vệ tinh</strong></td><td>Nhẹ nhất về CPU/jank nhưng GPU memory vẫn cao hơn 2D do raster satellite.</td><td>Giữ làm baseline cho satellite; kiểm soát cache/raster tile khi pan/zoom nhanh.</td><td>Tối ưu kích thước raster tile, cache headers và chiến lược tile size nếu có quyền điều chỉnh.</td><td>Duy trì FPS ổn định, thermal thấp và không tăng GPU memory bất thường.</td></tr>
+          <tr><td><strong>3D MAPBOX & HD MAP</strong></td><td>Tổ hợp xấu nhất về FPS/jank; Mapbox 3D basemap cộng với HD Map làm render thread rất nặng.</td><td>Tạo performance mode bắt buộc: giảm/tắt <code>trees</code>, <code>3d-building</code>, POI/transit/road labels phụ và HD extrusion khi đang thao tác hoặc navigation.</td><td>Giảm LOD HD Road khi chạy cùng Mapbox 3D; tránh chồng quá nhiều geometry 3D từ cả basemap và HD overlay.</td><td>Giảm frame &gt;33.3ms từ mức 14%, kéo P99 xuống và giảm nhiệt khi dùng lâu.</td></tr>
+          <tr><td><strong>Chỉ 3D MAPBOX</strong></td><td>Vẫn nặng dù không có HD Map, chủ yếu do basemap 3D/symbol.</td><td>Giảm <code>trees</code>, <code>3d-building</code>, POI/transit/road labels theo zoom/pitch/interaction; ưu tiên navigation performance mode.</td><td>Nếu dùng style Mapbox tùy biến, tạo preset 3D nhẹ hơn cho navigation.</td><td>Giảm jank nền của Mapbox 3D trước khi bật thêm HD Map.</td></tr>
+        </tbody>
+      </table>
+
+      <table style="margin-bottom:16px">
+        <thead><tr><th>Ưu tiên chung</th><th>Việc cần làm</th><th>Lý do</th></tr></thead>
+        <tbody>
+          <tr><td><span class="severity high">P0</span></td><td>Server giảm geometry/LOD cho HD Road.</td><td>HD Road xuất hiện là nhóm nặng nhất ở nhiều tổ hợp; giảm từ server giúp app không phải parse/render dữ liệu thừa.</td></tr>
+          <tr><td><span class="severity high">P0</span></td><td>App có performance mode khi pan/zoom/navigation.</td><td>Giảm tải đúng lúc người dùng dễ cảm nhận lag nhất và khi nhiệt tăng.</td></tr>
+          <tr><td><span class="severity high">P1</span></td><td>Style nhẹ riêng cho Satellite & HD Map.</td><td>Tổ hợp này dùng GPU memory cao nhất, cần cấu hình riêng thay vì dùng lại style HD đầy đủ.</td></tr>
+          <tr><td><span class="severity medium">P1</span></td><td>Giảm Mapbox 3D basemap phụ khi đi cùng HD Map.</td><td>3D MAPBOX & HD MAP là tổ hợp xấu nhất về FPS/jank.</td></tr>
+          <tr><td><span class="severity medium">P2</span></td><td>Giảm update liên tục và đơn giản hóa expression/filter.</td><td>Là tối ưu bổ sung sau khi xử lý layer/tile chính.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = 'rgba(99,102,241,0.10)';
+
+    const cpuTimeline3dHd = [174.87, 186.90, 166.29, 173.45, 180.69, 168.68, 168.00, 251.92, 165.55, 165.10, 163.31, 181.22, 174.09, 164.02, 176.86, 162.51, 152.03, 154.84, 154.01, 143.37, 144.93, 165.05, 136.81, 141.78];
+    const cpuTimeline3dOnly = [120.77, 172.45, 115.80, 129.98, 144.11, 127.86, 142.57, 148.33, 130.43, 140.80, 148.30, 136.14, 135.55, 172.43, 136.30, 127.67, 122.10, 126.05, 127.68, 120.52, 128.74, 119.21, 122.40, 126.77];
+    const cpuTimeline2dHd = [124.44, 178.65, 122.75, 132.34, 143.56, 131.09, 161.86, 166.18, 173.52, 161.23, 192.59, 165.02, 163.05, 212.15, 182.52, 162.08, 162.98, 167.15, 164.08, 164.82, 162.62, 159.98, 158.03, 141.20];
+    const cpuTimeline2dOnly = [131.40, 154.31, 132.83, 134.50, 166.77, 134.96, 125.73, 123.15, 128.68, 130.35, 120.64, 126.17, 120.00, 123.49, 128.00, 126.78, 133.30, 127.47, 130.42, 138.40, 124.40, 116.11, 123.12, 137.98];
+    const cpuTimelineSatelliteHd = [130.04, 154.15, 141.80, 165.71, 184.51, 162.60, 171.35, 184.85, 170.11, 162.42, 249.12, 224.84, 164.63, 163.05, 171.17, 168.85, 170.14, 165.75, 158.93, 161.05, 144.60, 164.95, 150.26, 150.00];
+    const cpuTimelineSatelliteOnly = [74, 78, 89, 79, 77, 86, 83, 96, 88, 75, 83, 89, 83, 87, 121, 85, 84, 82, 85, 96, 90, 97, 98, 98];
+    const cpuTimeline3dMapboxHd = [109.97, 137.18, 121.27, 119.20, 142.46, 140.84, 183.71, 170.44, 169.28, 179.20, 186.26, 176.73, 178.65, 256.41, 195.61, 190.37, 177.66, 179.11, 189.15, 171.58, 174.77, 168.98, 170.05, 169.78];
+    const cpuTimeline3dMapboxOnly = [139.49, 169.99, 140.13, 155.96, 169.01, 153.27, 167.78, 180.75, 157.47, 170.65, 174.25, 158.34, 143.75, 205.21, 168.62, 157.40, 158.18, 153.00, 158.77, 155.76, 156.28, 149.52, 152.02, 148.73];
+    const timeLabels = cpuTimeline3dHd.map((_, i) => `${i * 5}s`);
+
+    new Chart(document.getElementById('cpuChart'), {
+      type: 'line',
+      data: {
+        labels: timeLabels,
+        datasets: [
+          { label: '3D & HD Map', data: cpuTimeline3dHd, borderColor: '#22d3ee', backgroundColor: 'rgba(34,211,238,0.10)', fill: true, tension: 0.35, pointRadius: 0 },
+          { label: 'Chỉ 3D', data: cpuTimeline3dOnly, borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.08)', fill: true, tension: 0.35, pointRadius: 0 },
+          { label: '2D & HD Map', data: cpuTimeline2dHd, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.08)', fill: true, tension: 0.35, pointRadius: 0 },
+          { label: 'Chỉ 2D', data: cpuTimeline2dOnly, borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,0.08)', fill: true, tension: 0.35, pointRadius: 0 },
+          { label: 'Vệ tinh & HD Map', data: cpuTimelineSatelliteHd, borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,0.08)', fill: true, tension: 0.35, pointRadius: 0 },
+          { label: 'Chỉ Vệ tinh', data: cpuTimelineSatelliteOnly, borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.08)', fill: true, tension: 0.35, pointRadius: 0 },
+          { label: '3D MAPBOX & HD MAP', data: cpuTimeline3dMapboxHd, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', fill: true, tension: 0.35, pointRadius: 0 },
+          { label: 'Chỉ 3D MAPBOX', data: cpuTimeline3dMapboxOnly, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', fill: true, tension: 0.35, pointRadius: 0 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: '% theo 1 lõi CPU' } } } }
+    });
+
+    new Chart(document.getElementById('threadChart'), {
+      type: 'bar',
+      data: {
+        labels: ['CPU app (process CPU)', 'MapboxRenderThr', 'Luồng chính của app', 'JIT pool', 'MB Worker U*'],
+        datasets: [
+          { label: '3D & HD Map', data: [167.36, 73.34, 42.14, 20.09, 14.36], backgroundColor: 'rgba(129,140,248,0.42)', borderColor: '#818cf8', borderWidth: 1 },
+          { label: 'Chỉ 3D', data: [134.37, 68.37, 35.91, 8.12, 12.76], backgroundColor: 'rgba(52,211,153,0.34)', borderColor: '#34d399', borderWidth: 1 },
+          { label: '2D & HD Map', data: [160.64, 72.27, 39.96, 18.24, 14.57], backgroundColor: 'rgba(249,115,22,0.30)', borderColor: '#f97316', borderWidth: 1 },
+          { label: 'Chỉ 2D', data: [130.86, 66.70, 36.04, 8.08, 11.73], backgroundColor: 'rgba(167,139,250,0.30)', borderColor: '#a78bfa', borderWidth: 1 },
+          { label: 'Vệ tinh & HD Map', data: [168.21, 69.23, 40.84, 19.15, 15.33], backgroundColor: 'rgba(251,113,133,0.30)', borderColor: '#fb7185', borderWidth: 1 },
+          { label: 'Chỉ Vệ tinh', data: [87.59, 43.45, 24.57, 5.45, 7.90], backgroundColor: 'rgba(56,189,248,0.30)', borderColor: '#38bdf8', borderWidth: 1 },
+          { label: '3D MAPBOX & HD MAP', data: [169.15, 81.74, 37.51, 18.46, 14.40], backgroundColor: 'rgba(239,68,68,0.30)', borderColor: '#ef4444', borderWidth: 1 },
+          { label: 'Chỉ 3D MAPBOX', data: [160.24, 84.53, 40.72, 10.01, 14.41], backgroundColor: 'rgba(245,158,11,0.30)', borderColor: '#f59e0b', borderWidth: 1 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+    });
+
+    new Chart(document.getElementById('pipelineChart'), {
+      type: 'bar',
+      data: {
+        labels: ['maps: render', 'render_tree_render', 'translucent pass', 'CreateRenderTree', 'symbol placement', 'update sources'],
+        datasets: [
+          { label: '3D & HD Map', data: [23.77, 13.84, 11.81, 9.11, 3.46, 3.65], backgroundColor: 'rgba(244,114,182,0.35)', borderColor: '#f472b6', borderWidth: 1 },
+          { label: 'Chỉ 3D', data: [21.63, 11.79, 9.66, 8.79, 4.33, 2.93], backgroundColor: 'rgba(52,211,153,0.34)', borderColor: '#34d399', borderWidth: 1 },
+          { label: '2D & HD Map', data: [23.16, 13.26, 11.19, 9.02, 3.66, 3.46], backgroundColor: 'rgba(249,115,22,0.30)', borderColor: '#f97316', borderWidth: 1 },
+          { label: 'Chỉ 2D', data: [20.97, 11.64, 9.51, 8.38, 3.95, 2.92], backgroundColor: 'rgba(167,139,250,0.30)', borderColor: '#a78bfa', borderWidth: 1 },
+          { label: 'Vệ tinh & HD Map', data: [21.94, 13.76, 11.08, 7.90, 1.21, 3.98], backgroundColor: 'rgba(251,113,133,0.30)', borderColor: '#fb7185', borderWidth: 1 },
+          { label: 'Chỉ Vệ tinh', data: [12.51, 7.65, 5.97, 4.63, 0.91, 2.26], backgroundColor: 'rgba(56,189,248,0.30)', borderColor: '#38bdf8', borderWidth: 1 },
+          { label: '3D MAPBOX & HD MAP', data: [29.37, 15.32, 12.79, 13.14, 7.25, 3.31], backgroundColor: 'rgba(239,68,68,0.30)', borderColor: '#ef4444', borderWidth: 1 },
+          { label: 'Chỉ 3D MAPBOX', data: [28.46, 13.98, 11.59, 13.43, 8.58, 2.65], backgroundColor: 'rgba(245,158,11,0.30)', borderColor: '#f59e0b', borderWidth: 1 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: 'ms' } } } }
+    });
+
+    new Chart(document.getElementById('layerChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10'],
+        datasets: [
+          { label: '3D & HD Map top layer cost', data: [2115.49, 1955.81, 1465.66, 1064.55, 914.99, 896.99, 819.89, 774.01, 715.63, 645.47], backgroundColor: 'rgba(251,113,133,0.34)', borderColor: '#fb7185', borderWidth: 1 },
+          { label: 'Chỉ 3D top layer cost', data: [1091.72, 776.47, 702.15, 647.86, 579.13, 547.97, 499.26, 495.95, 474.22, 467.82], backgroundColor: 'rgba(34,211,238,0.28)', borderColor: '#22d3ee', borderWidth: 1 },
+          { label: '2D & HD Map top layer cost', data: [1950.38, 1715.79, 1308.79, 1040.37, 847.24, 815.95, 800.14, 614.58, 600.92, 568.93], backgroundColor: 'rgba(249,115,22,0.28)', borderColor: '#f97316', borderWidth: 1 },
+          { label: 'Chỉ 2D top layer cost', data: [969.35, 715.17, 664.03, 574.02, 563.64, 553.53, 549.29, 547.88, 522.37, 495.06], backgroundColor: 'rgba(167,139,250,0.28)', borderColor: '#a78bfa', borderWidth: 1 },
+          { label: 'Vệ tinh & HD Map top layer cost', data: [3835.30, 2745.85, 2644.15, 1996.03, 1645.55, 1530.16, 1377.90, 1252.12, 1181.33, 1180.21], backgroundColor: 'rgba(251,113,133,0.28)', borderColor: '#fb7185', borderWidth: 1 },
+          { label: 'Chỉ Vệ tinh top layer cost', data: [3800.70, 1755.30, 1229.34, 1129.64, 904.65, 882.50, 738.66, 670.04, 621.79, 618.85], backgroundColor: 'rgba(56,189,248,0.28)', borderColor: '#38bdf8', borderWidth: 1 },
+          { label: '3D MAPBOX & HD MAP top layer cost', data: [1737.07, 1596.91, 1459.86, 1289.08, 1227.53, 1212.91, 1046.50, 936.17, 894.89, 815.18], backgroundColor: 'rgba(239,68,68,0.28)', borderColor: '#ef4444', borderWidth: 1 },
+          { label: 'Chỉ 3D MAPBOX top layer cost', data: [1848.17, 1733.16, 1707.12, 1181.01, 958.61, 804.70, 803.66, 745.55, 727.20, 690.70], backgroundColor: 'rgba(245,158,11,0.28)', borderColor: '#f59e0b', borderWidth: 1 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+    });
+
+    new Chart(document.getElementById('frameChart'), {
+      type: 'bar',
+      data: {
+        labels: ['p50', 'p90', 'p95', 'p99', 'max'],
+        datasets: [
+          { label: '3D & HD Map', data: [22.47, 29.49, 32.08, 36.82, 43.21], backgroundColor: 'rgba(251,191,36,0.34)', borderColor: '#fbbf24', borderWidth: 1 },
+          { label: 'Chỉ 3D', data: [22.06, 25.68, 26.80, 28.91, 47.99], backgroundColor: 'rgba(52,211,153,0.34)', borderColor: '#34d399', borderWidth: 1 },
+          { label: '2D & HD Map', data: [22.10, 28.43, 30.70, 36.03, 55.40], backgroundColor: 'rgba(249,115,22,0.30)', borderColor: '#f97316', borderWidth: 1 },
+          { label: 'Chỉ 2D', data: [21.16, 24.82, 25.72, 28.13, 31.72], backgroundColor: 'rgba(167,139,250,0.30)', borderColor: '#a78bfa', borderWidth: 1 },
+          { label: 'Vệ tinh & HD Map', data: [21.94, 27.72, 29.60, 35.74, 63.89], backgroundColor: 'rgba(251,113,133,0.30)', borderColor: '#fb7185', borderWidth: 1 },
+          { label: 'Chỉ Vệ tinh', data: [12.48, 16.33, 18.67, 21.76, 25.94], backgroundColor: 'rgba(56,189,248,0.30)', borderColor: '#38bdf8', borderWidth: 1 },
+          { label: '3D MAPBOX & HD MAP', data: [29.19, 33.97, 38.04, 51.86, 66.81], backgroundColor: 'rgba(239,68,68,0.30)', borderColor: '#ef4444', borderWidth: 1 },
+          { label: 'Chỉ 3D MAPBOX', data: [28.33, 32.18, 34.57, 41.90, 55.54], backgroundColor: 'rgba(245,158,11,0.30)', borderColor: '#f59e0b', borderWidth: 1 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: 'ms' } } } }
+    });
+
+    new Chart(document.getElementById('jankChart'), {
+      type: 'bar',
+      data: {
+        labels: ['3D & HD Map', 'Chỉ 3D', '2D & HD Map', 'Chỉ 2D', 'Vệ tinh & HD Map', 'Chỉ Vệ tinh', '3D MAPBOX & HD MAP', 'Chỉ 3D MAPBOX'],
+        datasets: [{ label: 'Frames >33.3ms (%)', data: [3.74, 0.20, 2.51, 0.00, 1.76, 0.00, 14.00, 7.32], backgroundColor: ['rgba(251,113,133,0.42)', 'rgba(52,211,153,0.34)', 'rgba(249,115,22,0.30)', 'rgba(167,139,250,0.30)', 'rgba(244,114,182,0.34)', 'rgba(56,189,248,0.30)', 'rgba(239,68,68,0.36)', 'rgba(245,158,11,0.34)'], borderColor: ['#fb7185', '#34d399', '#f97316', '#a78bfa', '#f472b6', '#38bdf8', '#ef4444', '#f59e0b'], borderWidth: 1 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: '%' }, beginAtZero: true } } }
+    });
+  </script>
+</body>
+</html>
