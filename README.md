@@ -18,6 +18,18 @@ gofa-performance-report.html
 
 ## Publish bang GitHub Pages
 
+Repo nay dung cho GitHub Pages ca nhan:
+
+```text
+https://minhtv15.github.io/
+```
+
+Ten repo tren GitHub can la:
+
+```text
+minhtv15.github.io
+```
+
 Sau khi push repo len GitHub:
 
 1. Vao `Settings` -> `Pages`.
@@ -26,8 +38,8 @@ Sau khi push repo len GitHub:
 4. Folder: `/root`.
 5. Save.
 
-URL public se co dang:
+URL public:
 
 ```text
-https://<github-username>.github.io/gofa-map-performance-report/
+https://minhtv15.github.io/
 ```
