@@ -611,13 +611,31 @@
     <div class="container">
       <div class="section-head">
         <h2>Phân tích nhiệt độ / Thermal</h2>
-        <p>Các trace đã đo được chạy kèm thermal log song song. Perfetto chỉ có <code>ThermalManagerService.status</code>, còn nhiệt độ chi tiết lấy từ các file <code>thermal-*.log</code>.</p>
+        <p>Phần này cho biết thiết bị nóng lên ở khu vực nào khi chạy từng kiểu bản đồ. <strong>avg</strong> là nhiệt độ trung bình trong phiên đo, <strong>max</strong> là mức cao nhất ghi nhận được.</p>
       </div>
 
       <table>
         <thead>
           <tr>
-            <th>Metric thermal</th>
+            <th>Chỉ số nhiệt độ</th>
+            <th>Cách hiểu đơn giản</th>
+            <th>Cách dùng khi đánh giá</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Nhiệt khu vực chip / CPU (<code>AP / CPU-zone</code>)</td><td>Nhiệt ở khu vực vi xử lý chính của máy, nơi xử lý app, bản đồ, dữ liệu và logic giao diện.</td><td>Cao kéo dài nghĩa là app đang bắt máy xử lý nhiều; dễ dẫn tới giảm xung CPU và thao tác kém mượt.</td></tr>
+          <tr><td>Nhiệt GPU (<code>GPU temperature / gpuss-*</code>)</td><td>Nhiệt ở phần chuyên vẽ hình ảnh, texture, tile, layer 3D và hiệu ứng bản đồ.</td><td>Dùng để xem bản đồ có đang gây tải đồ họa cao hay không, đặc biệt với 3D, HD Map và vệ tinh.</td></tr>
+          <tr><td>Nhiệt bề mặt máy (<code>Skin</code>)</td><td>Nhiệt người dùng cảm nhận được khi cầm máy.</td><td>Quan trọng cho trải nghiệm thực tế; skin cao làm máy nóng tay và hệ điều hành có thể giảm hiệu năng để bảo vệ thiết bị.</td></tr>
+          <tr><td>Nhiệt pin (<code>Battery</code>)</td><td>Nhiệt khu vực pin trong lúc chạy bản đồ.</td><td>Cao kéo dài không tốt cho trải nghiệm dùng lâu; cần giảm tải render và update liên tục nếu pin nóng nhanh.</td></tr>
+          <tr><td>Mức cảnh báo nhiệt Android (<code>Thermal status</code>)</td><td>Mức cảnh báo do hệ điều hành đưa ra. Số càng cao nghĩa là máy càng nóng và càng có khả năng bị giới hạn hiệu năng.</td><td>Dùng để quyết định khi nào app nên tự giảm chất lượng bản đồ, ví dụ giảm 3D, extrusion, symbol phụ hoặc HD overlay.</td></tr>
+          <tr><td>Liên hệ nhiệt với độ mượt (<code>FPS / P99</code>)</td><td>So nhiệt độ với FPS và frame time để biết máy nóng có đi kèm giật/lag hay không.</td><td>Nếu nhiệt tăng cùng P95/P99 tăng hoặc FPS giảm, cần ưu tiên giảm tải render thay vì chỉ tối ưu nhỏ lẻ.</td></tr>
+        </tbody>
+      </table>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Chỉ số nhiệt độ</th>
             <th>3D & HD Map</th>
             <th>Chỉ 3D</th>
             <th>2D & HD Map</th>
@@ -631,12 +649,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td>AP / CPU-zone avg / max</td><td class="warn">45.19 / 45.60°C</td><td class="warn">44.67 / 45.50°C</td><td class="warn">45.11 / 46.10°C</td><td class="warn">44.87 / 45.80°C</td><td class="warn">45.39 / 46.70°C</td><td class="good">42.61 / 43.40°C</td><td class="bad">46.75 / 48.50°C</td><td class="bad">47.26 / 48.20°C</td><td><span class="severity medium">Cảnh báo</span></td><td>Chỉ Vệ tinh giảm AP temperature rõ.</td></tr>
-          <tr><td>GPU temperature avg / max</td><td class="warn">gpuss avg ~49.20, max 50.30°C</td><td class="warn">gpuss avg ~48.39, max 49.90°C</td><td class="warn">gpuss avg ~48.88, max 51.10°C</td><td class="warn">gpuss avg ~48.48, max 50.30°C</td><td class="warn">gpuss avg ~49.55, max 51.90°C</td><td class="warn">gpuss avg ~46.05, max 47.90°C</td><td class="bad">gpuss avg ~51.10, max 53.50°C</td><td class="bad">gpuss avg ~51.03, max 53.10°C</td><td><span class="severity medium">Có sysfs</span></td><td>GPU temp riêng lấy từ sysfs thermal zones <code>gpuss-*</code>; nếu Perfetto không expose GPU frequency/utilization thì vẫn đọc được nhiệt qua thermal log song song.</td></tr>
-          <tr><td>Skin avg / max</td><td class="bad">42.23 / 42.40°C</td><td class="bad">41.87 / 42.20°C</td><td class="bad">42.26 / 42.50°C</td><td class="bad">42.15 / 42.40°C</td><td class="bad">42.12 / 42.60°C</td><td class="good">40.11 / 40.60°C</td><td class="bad">42.91 / 43.70°C</td><td class="bad">43.97 / 44.20°C</td><td><span class="severity high">Nóng</span></td><td>Chỉ Vệ tinh thấp nhất về skin temperature.</td></tr>
-          <tr><td>Battery avg / max</td><td class="warn">39.59 / 39.80°C</td><td class="warn">39.63 / 39.80°C</td><td class="warn">39.66 / 39.90°C</td><td class="warn">39.88 / 40.00°C</td><td class="warn">39.59 / 40.00°C</td><td class="good">37.68 / 38.20°C</td><td class="warn">40.10 / 40.90°C</td><td class="bad">41.41 / 41.50°C</td><td><span class="severity medium">Cảnh báo</span></td><td>BAT thấp hơn các run trước.</td></tr>
-          <tr><td>Thermal status</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="good">status 1-2, max 2</td><td class="bad">avg 2.85, max 3</td><td class="bad">avg 3.00, max 3</td><td><span class="severity high">Nặng</span></td><td>Chỉ Vệ tinh chưa vào status 3.</td></tr>
-          <tr><td>Tương quan FPS - thermal</td><td class="bad">FPS 28.56, P99 36.82ms</td><td class="good">FPS 29.85, P99 28.91ms</td><td class="warn">FPS 28.92, P99 36.03ms</td><td class="good">FPS 29.89, P99 28.13ms</td><td class="warn">FPS 28.88, P99 35.74ms</td><td class="good">FPS 29.92, P99 21.76ms</td><td class="bad">FPS 26.26, P99 51.86ms</td><td class="bad">FPS 28.25, P99 41.90ms</td><td><span class="severity medium">Cần kiểm soát nhiệt</span></td><td>Bỏ HD Map cải thiện cả thermal và jank.</td></tr>
+          <tr><td>Nhiệt khu vực chip / CPU (<code>AP / CPU-zone avg / max</code>)</td><td class="warn">45.19 / 45.60°C</td><td class="warn">44.67 / 45.50°C</td><td class="warn">45.11 / 46.10°C</td><td class="warn">44.87 / 45.80°C</td><td class="warn">45.39 / 46.70°C</td><td class="good">42.61 / 43.40°C</td><td class="bad">46.75 / 48.50°C</td><td class="bad">47.26 / 48.20°C</td><td><span class="severity medium">Cảnh báo</span></td><td>Chỉ Vệ tinh có nhiệt khu vực chip thấp nhất.</td></tr>
+          <tr><td>Nhiệt GPU (<code>GPU temperature / gpuss avg / max</code>)</td><td class="warn">49.20 / 50.30°C</td><td class="warn">48.39 / 49.90°C</td><td class="warn">48.88 / 51.10°C</td><td class="warn">48.48 / 50.30°C</td><td class="warn">49.55 / 51.90°C</td><td class="warn">46.05 / 47.90°C</td><td class="bad">51.10 / 53.50°C</td><td class="bad">51.03 / 53.10°C</td><td><span class="severity medium">Cảnh báo</span></td><td>Hai tổ hợp Mapbox 3D có nhiệt GPU cao nhất.</td></tr>
+          <tr><td>Nhiệt bề mặt máy (<code>Skin avg / max</code>)</td><td class="bad">42.23 / 42.40°C</td><td class="bad">41.87 / 42.20°C</td><td class="bad">42.26 / 42.50°C</td><td class="bad">42.15 / 42.40°C</td><td class="bad">42.12 / 42.60°C</td><td class="good">40.11 / 40.60°C</td><td class="bad">42.91 / 43.70°C</td><td class="bad">43.97 / 44.20°C</td><td><span class="severity high">Nóng</span></td><td>Chỉ 3D MAPBOX nóng nhất ở bề mặt máy.</td></tr>
+          <tr><td>Nhiệt pin (<code>Battery avg / max</code>)</td><td class="warn">39.59 / 39.80°C</td><td class="warn">39.63 / 39.80°C</td><td class="warn">39.66 / 39.90°C</td><td class="warn">39.88 / 40.00°C</td><td class="warn">39.59 / 40.00°C</td><td class="good">37.68 / 38.20°C</td><td class="warn">40.10 / 40.90°C</td><td class="bad">41.41 / 41.50°C</td><td><span class="severity medium">Cảnh báo</span></td><td>Chỉ Vệ tinh có nhiệt pin thấp nhất.</td></tr>
+          <tr><td>Mức cảnh báo nhiệt Android (<code>Thermal status</code>)</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="bad">avg 3.00, max 3</td><td class="good">status 1-2, max 2</td><td class="bad">avg 2.85, max 3</td><td class="bad">avg 3.00, max 3</td><td><span class="severity high">Nặng</span></td><td>Hầu hết tổ hợp đã vào mức cảnh báo cao, riêng Chỉ Vệ tinh thấp hơn.</td></tr>
+          <tr><td>Liên hệ nhiệt với độ mượt (<code>FPS / P99</code>)</td><td class="bad">FPS 28.56, P99 36.82ms</td><td class="good">FPS 29.85, P99 28.91ms</td><td class="warn">FPS 28.92, P99 36.03ms</td><td class="good">FPS 29.89, P99 28.13ms</td><td class="warn">FPS 28.88, P99 35.74ms</td><td class="good">FPS 29.92, P99 21.76ms</td><td class="bad">FPS 26.26, P99 51.86ms</td><td class="bad">FPS 28.25, P99 41.90ms</td><td><span class="severity medium">Cần kiểm soát nhiệt</span></td><td>Các tổ hợp có HD Map hoặc Mapbox 3D cần giảm tải khi nhiệt tăng.</td></tr>
         </tbody>
       </table>
 
