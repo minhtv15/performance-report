@@ -610,7 +610,7 @@
         </tbody>
       </table>
       <p class="note" style="margin-top:16px">Các bảng dưới đây cho biết thành phần nào đang dùng CPU/RAM nhiều nhất trong từng tổ hợp.</p>
-      <div class="grid-2">
+      <div style="display:grid; grid-template-columns:1fr; gap:16px">
         <div class="chart-card">
           <h3>Diễn biến CPU theo thời gian</h3>
           <div class="chart-wrap"><canvas id="cpuChart"></canvas></div>
@@ -862,10 +862,11 @@
           { label: 'Chỉ Vệ tinh', data: cpuTimelineSatelliteOnly, borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.08)', fill: true, tension: 0.35, pointRadius: 0 },
           { label: '3D MAPBOX & HD MAP', data: cpuTimeline3dMapboxHd, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', fill: true, tension: 0.35, pointRadius: 0 },
           { label: 'Chỉ 3D MAPBOX', data: cpuTimeline3dMapboxOnly, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', fill: true, tension: 0.35, pointRadius: 0 },
-          { label: '3D & HD Map Offline', data: cpuTimeline3dHdOffline, borderColor: '#64748b', backgroundColor: 'rgba(100,116,139,0.10)', fill: true, tension: 0.35, pointRadius: 0 }
+          { label: '3D & HD Map Offline', data: cpuTimeline3dHdOffline, borderColor: '#64748b', backgroundColor: 'rgba(100,116,139,0.10)', fill: true, tension: 0.35, pointRadius: 0 },
+          { label: 'Mốc 200%', data: timeLabels.map(() => 200), borderColor: '#f87171', borderDash: [8, 6], borderWidth: 2, pointRadius: 0, fill: false, tension: 0 }
         ]
       },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: '% theo 1 lõi CPU' } } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { suggestedMax: 260, title: { display: true, text: '% theo 1 lõi CPU' } } } }
     });
 
     new Chart(document.getElementById('threadChart'), {
