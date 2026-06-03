@@ -207,6 +207,46 @@
           <tr><td>Temperature</td><td>Thermal</td><td class="bad">Status 3; SKIN 42.23 / 42.40</td><td class="bad">Status 3; SKIN 41.87 / 42.20</td><td class="bad">Status 2-3; SKIN 41.96 / 42.40</td><td class="bad">Status 3; SKIN 42.15 / 42.40</td><td class="bad">Status 3; SKIN 42.12 / 42.60</td><td class="good">Status 1-2; SKIN 40.11 / 40.60</td><td class="bad">Status 2-3; SKIN 42.91 / 43.70</td><td class="bad">Status 3; SKIN 43.97 / 44.20</td><td>°C</td><td>Chỉ 3D MAPBOX nóng nhất về skin trong các trace hiện có.</td></tr>
         </tbody>
       </table>
+      <h3 style="margin-top:22px">Phân tích thời điểm CPU &gt;200% - 3D & HD Map trong bảng so sánh</h3>
+      <p class="note">Phần này dùng kết quả đo cuối cùng của tổ hợp <strong>3D & HD Map</strong> để giải thích các thời điểm CPU tăng cao. Bảng so sánh phía trên vẫn giữ vai trò là mốc tổng hợp 8 tổ hợp bản đồ.</p>
+      <table>
+        <thead><tr><th>Thời điểm</th><th>CPU app</th><th>Thành phần đóng góp chính</th><th>Dấu hiệu trong trace</th><th>Phân tích kỹ thuật</th><th>Hướng xử lý</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>5-10s</td>
+            <td class="bad">208.19% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr 77.74%; main/UI 41.76%; MB Worker U4 31.10%; MB Worker U3 13.55%; JIT 13.27%; MB Worker U1 9.84%</td>
+            <td><code>hd_road</code> load 6 tile, <code>traffic</code> 4 tile, <code>base_roads</code> 4 tile; 196 <code>mbx: do-frame</code>; render max 53.26ms.</td>
+            <td>Đây là spike đầu phiên. Worker thread xử lý tile mới trong khi render thread vẫn phải dựng frame liên tục. Việc MB Worker U4 tăng cao cho thấy chi phí không chỉ nằm ở GPU/render, mà còn ở parse tile, tạo bucket, chuẩn bị geometry và cập nhật dữ liệu cho render tree.</td>
+            <td>Giảm tile burst đầu phiên: kiểm tra prefetch, cache hit/miss, size tile HD Road/traffic tại viewport ban đầu và tránh cập nhật nhiều source/layer ngay cùng lúc.</td>
+          </tr>
+          <tr>
+            <td>35-40s</td>
+            <td class="bad">226.04% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr 84.43%; main/UI 53.21%; JIT 24.09%; DefaultDispatch 13.63%; MB Worker U2 8.25%; MB Worker U4 7.48%</td>
+            <td><code>hd_road</code> load 44 tile, <code>base_roads</code> 20 tile, <code>traffic</code> 20 tile, <code>geo tiles</code> 5 tile; render max 59.64ms.</td>
+            <td>Nhiều source tile hoàn tất trong cùng cửa sổ thời gian làm render tree phải cập nhật mạnh. Main/UI và JIT cùng tăng cho thấy app/runtime cũng tham gia vào spike, không chỉ Mapbox render thread. Đây là dấu hiệu của burst cập nhật tile/source sau thao tác camera hoặc thay đổi viewport.</td>
+            <td>Rà min/maxzoom, overscaling, cache header/TTL và số tile request đồng thời. Với server, giảm feature/vertex cho HD Road và traffic ở zoom đang đo.</td>
+          </tr>
+          <tr>
+            <td>65-70s</td>
+            <td class="bad">243.69% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr 81.99%; main/UI 52.21%; JIT 24.59%; MB Worker U2 12.60%; DefaultDispatch 11.76%; MB Worker U1 11.68%</td>
+            <td><code>hd_road</code> load 53 tile, <code>base_roads</code> 34 tile, <code>traffic</code> 34 tile, <code>geo tiles</code> 6 tile, 3D building meshopt 5 tile; render max 49.36ms.</td>
+            <td>Đây là spike nặng nhất. HD Road, traffic/base_roads và 3D building cùng tạo áp lực lên worker thread, main thread và render thread. Nhóm <code>hd-road-polygon-*</code>, line/dash và extrusion làm tăng chi phí dựng render tree và translucent pass, nên khi tile burst xảy ra thì frame time vượt ngưỡng 33.3ms dễ hơn.</td>
+            <td>Ưu tiên giảm LOD cho HD Road theo zoom/pitch, giảm số tile request đồng thời, gộp hoặc loại bớt feature trùng mục đích giữa polygon/centerline/dash/casing.</td>
+          </tr>
+          <tr>
+            <td>70-80s</td>
+            <td class="bad">216.61% và 202.98% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr khoảng 84%; main/UI khoảng 50-52%; JIT 26-30%; DefaultDispatch 13-17%</td>
+            <td><code>hd_road</code> tiếp tục load khoảng 25-26 tile mỗi cửa sổ; vẫn có traffic/base_roads và 3D building; render max 54.07ms và 46.92ms.</td>
+            <td>Spike không kết thúc ngay sau đỉnh 65-70s mà kéo dài thêm nhiều frame. Đây là tail latency của pipeline tile/render: tile được nạp theo cụm, sau đó app tiếp tục tốn CPU để cập nhật render tree và vẽ các layer nặng trong vài giây tiếp theo.</td>
+            <td>Thêm pacing/throttling khi cập nhật tile/source trong lúc pan/zoom; giảm quality tạm thời cho HD Road/3D building khi đang tương tác hoặc khi P95/P99 vượt ngưỡng.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:16px">Cách đọc: đỉnh 243.69% tương đương khoảng 2.44 lõi CPU. Trên thiết bị 8 lõi, mức này xấp xỉ 30.5% tổng CPU trong cửa sổ 5 giây, nhưng vẫn đáng chú ý vì đi cùng render max gần 50-60ms và tỷ lệ frame &gt;33.3ms cao.</p>
       <h3 style="margin-top:22px">Tổ hợp bổ sung: 3D & HD Map Offline</h3>
       <table>
         <thead><tr><th>Nhóm</th><th>Chỉ số</th><th>Giá trị đo được</th><th>Đánh giá</th></tr></thead>
@@ -247,18 +287,18 @@
         <thead><tr><th>Nhóm</th><th>Chỉ số</th><th>Giá trị đo được</th><th>Đánh giá nhanh</th></tr></thead>
         <tbody>
           <tr><td>Điều kiện đo</td><td>Kết nối mạng</td><td class="good">Online, Active default network: 106</td><td>Wi-Fi đang kết nối; logcat không thấy lỗi network.</td></tr>
-          <tr><td>Trace</td><td>Duration</td><td>112.51s phần trace đọc được</td><td>Perfetto capture khoảng 120s; phần sched/render đọc được là 112.51s.</td></tr>
-          <tr><td>CPU</td><td>App CPU trung bình</td><td class="warn">123.00% theo 1 lõi CPU</td><td>Thấp hơn mốc 3D & HD Map trong bảng gốc (167.36%); app dùng khoảng 1.23 lõi CPU trung bình.</td></tr>
-          <tr><td>CPU</td><td>MapboxRenderThr</td><td class="bad">74.63% theo 1 lõi CPU</td><td>Gần mốc 3D & HD Map trong bảng gốc (73.34%), nên luồng render Mapbox vẫn là phần tốn CPU nhất.</td></tr>
-          <tr><td>CPU</td><td>Main/UI thread</td><td class="good">23.30% theo 1 lõi CPU</td><td>Thấp hơn mốc 3D & HD Map trong bảng gốc (42.14%), giảm rủi ro nghẽn thao tác UI.</td></tr>
-          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="warn">642.14 / 766.43 MB</td><td>Avg thấp hơn mốc 3D & HD Map trong bảng gốc (691.75 MB), nhưng max cao hơn mốc gốc (740.46 MB) nên vẫn cần theo dõi memory spike.</td></tr>
-          <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="warn">68.79 / 132.68 MB</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (17.52 / 17.56 MB), cần theo dõi khi chạy lâu.</td></tr>
-          <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="warn">281.26 / 284.16 MB</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (268.99 / 270.30 MB), nhưng vẫn thấp hơn Vệ tinh & HD Map.</td></tr>
-          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="good">41.86 FPS</td><td>Cao hơn rõ so với mốc 3D & HD Map trong bảng gốc (28.56 FPS).</td></tr>
-          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="good">17.34 / 29.34 / 31.22 ms</td><td>Tốt hơn mốc 3D & HD Map trong bảng gốc (23.78 / 32.08 / 36.82ms); P99 đã nằm dưới mốc 33.3ms.</td></tr>
-          <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="good">6 / 4710 = 0.13%</td><td>Tốt hơn nhiều so với mốc 3D & HD Map trong bảng gốc (3.74%).</td></tr>
-          <tr><td>Layer</td><td>Top cost layer</td><td><code>hd-road-polygon-street</code> - 1619.33ms total, 0.4832ms/frame</td><td>HD Road polygon vẫn đứng đầu, nhưng chi phí trung bình/frame thấp hơn mốc gốc của cùng layer (0.6177ms/frame).</td></tr>
-          <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 48.98/49.50°C; GPU 52.40/53.50°C; Skin 44.98/45.10°C; status 3</td><td>Hiệu năng render tốt hơn nhưng nhiệt vẫn cao; cần đánh giá thêm khi chạy lâu hơn.</td></tr>
+          <tr><td>Trace</td><td>Duration</td><td>119.94s</td><td>Độ dài tương đương các bài đo trong bảng gốc.</td></tr>
+          <tr><td>CPU</td><td>App CPU trung bình</td><td class="bad">190.13% theo 1 lõi CPU</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (167.36%); app dùng khoảng 1.90 lõi CPU trung bình.</td></tr>
+          <tr><td>CPU</td><td>MapboxRenderThr</td><td class="bad">82.60% theo 1 lõi CPU</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (73.34%), render thread đang nặng hơn rõ.</td></tr>
+          <tr><td>CPU</td><td>Main/UI thread</td><td class="warn">47.71% theo 1 lõi CPU</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (42.14%), có nguy cơ ảnh hưởng thao tác UI khi render/tile spike.</td></tr>
+          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="warn">684.87 / 761.30 MB</td><td>Avg gần mốc gốc (691.75 MB), nhưng max cao hơn mốc gốc (740.46 MB) nên cần theo dõi memory spike.</td></tr>
+          <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="good">19.00 / 19.04 MB</td><td>Gần mốc 3D & HD Map trong bảng gốc (17.52 / 17.56 MB), chưa phải vấn đề chính trong lần đo này.</td></tr>
+          <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="warn">282.63 / 285.77 MB</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (268.99 / 270.30 MB), nhưng vẫn thấp hơn Vệ tinh & HD Map.</td></tr>
+          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="warn">28.16 FPS</td><td>Thấp hơn nhẹ so với mốc 3D & HD Map trong bảng gốc (28.56 FPS).</td></tr>
+          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="bad">28.06 / 43.57 / 53.84 ms</td><td>Xấu hơn mốc 3D & HD Map trong bảng gốc (23.78 / 32.08 / 36.82ms), đặc biệt P95/P99 vượt xa 33.3ms.</td></tr>
+          <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="bad">836 / 3377 = 24.76%</td><td>Cao hơn rất nhiều so với mốc 3D & HD Map trong bảng gốc (3.74%); đây là điểm xấu nhất của lần đo này.</td></tr>
+          <tr><td>Layer</td><td>Top cost layer</td><td><code>hd-road-polygon-street</code> - 1970.28ms total, 0.6479ms/frame</td><td>HD Road polygon vẫn đứng đầu và chi phí trung bình/frame cao hơn mốc gốc của cùng layer (0.6177ms/frame).</td></tr>
+          <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 48.10/48.50°C; GPU 51.63/52.70°C; Skin 44.52/44.60°C; status 3</td><td>Nhiệt vẫn cao; khi kết hợp với P95/P99 xấu có thể làm trải nghiệm giảm sau thời gian dùng dài.</td></tr>
         </tbody>
       </table>
       <h3 style="margin-top:22px">Phân tích thời điểm CPU &gt;200%</h3>
@@ -266,16 +306,40 @@
         <thead><tr><th>Thời điểm</th><th>CPU app</th><th>Thành phần đóng góp chính</th><th>Dấu hiệu trong trace</th><th>Nhận định nguyên nhân</th><th>Việc cần kiểm tra</th></tr></thead>
         <tbody>
           <tr>
-            <td>Không có</td>
-            <td class="good">Không có cửa sổ 5s nào vượt 200%</td>
-            <td>CPU theo cửa sổ 5s dao động khoảng 108.74-133.90%, riêng đoạn cuối trace còn 63.08%.</td>
-            <td>Không thấy batch tile/render nào đẩy tổng CPU vượt 2 lõi. Frame max còn 38.55ms, <code>render_tree_render</code> max 21.82ms và <code>CreateRenderTree</code> max 19.11ms.</td>
-            <td>Lần đo này cho thấy pipeline ổn định hơn: worker thread thấp, main/UI giảm, không có tile burst đủ lớn để tạo CPU spike. Render thread vẫn là phần chính nhưng không kéo P99 vượt 33.3ms.</td>
-            <td>Tiếp tục theo dõi ở các thao tác pan/zoom mạnh; nếu spike quay lại, ưu tiên kiểm tra tile burst của <code>hd_road</code>, <code>traffic</code>, <code>base_roads</code>.</td>
+            <td>5-10s</td>
+            <td class="bad">208.19% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr 77.74%; main/UI 41.76%; MB Worker U4 31.10%; MB Worker U3 13.55%; JIT 13.27%; MB Worker U1 9.84%</td>
+            <td><code>hd_road</code> tile load 6 tile, <code>traffic</code> 4 tile, <code>base_roads</code> 4 tile; 196 <code>mbx: do-frame</code>, render max 53.26ms.</td>
+            <td>Spike đầu phiên do worker xử lý tile mới trong khi render thread vẫn vẽ liên tục. MB Worker U4 cao cho thấy parse/build bucket hoặc chuẩn bị geometry đang chạy song song với render.</td>
+            <td>Kiểm tra prefetch đầu phiên, cache hit/miss và kích thước tile HD Road/traffic ở viewport ban đầu.</td>
+          </tr>
+          <tr>
+            <td>35-40s</td>
+            <td class="bad">226.04% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr 84.43%; main/UI 53.21%; JIT 24.09%; DefaultDispatch 13.63%; MB Worker U2 8.25%; MB Worker U4 7.48%</td>
+            <td><code>hd_road</code> tile load 44 tile, <code>base_roads</code> 20 tile, <code>traffic</code> 20 tile, <code>geo tiles</code> 5 tile; render max 59.64ms.</td>
+            <td>Nhiều source tile hoàn tất gần nhau làm render tree bị cập nhật mạnh. Main/UI và JIT cùng tăng, cho thấy ngoài render còn có chi phí runtime/app hoặc style/update đi kèm.</td>
+            <td>Rà batch request theo zoom, cache header/TTL, số feature/vertex trong HD Road và traffic.</td>
+          </tr>
+          <tr>
+            <td>65-70s</td>
+            <td class="bad">243.69% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr 81.99%; main/UI 52.21%; JIT 24.59%; MB Worker U2 12.60%; DefaultDispatch 11.76%; MB Worker U1 11.68%</td>
+            <td><code>hd_road</code> tile load 53 tile, <code>base_roads</code> 34 tile, <code>traffic</code> 34 tile, <code>geo tiles</code> 6 tile, 3D building meshopt 5 tile; render max 49.36ms.</td>
+            <td>Đây là spike nặng nhất. Tile burst từ HD Road + traffic/base_roads + 3D building tạo áp lực đồng thời lên worker, main/JIT và render thread. HD Road polygon/line tiếp tục làm translucent pass và render tree nặng.</td>
+            <td>Giảm số tile request đồng thời, giảm geometry/LOD HD Road, và kiểm tra traffic/base_roads có đang bị request trùng hoặc overscale quá nhiều không.</td>
+          </tr>
+          <tr>
+            <td>70-80s</td>
+            <td class="bad">216.61% và 202.98% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr khoảng 84%; main/UI khoảng 50-52%; JIT 26-30%; DefaultDispatch 13-17%.</td>
+            <td><code>hd_road</code> tiếp tục load 25-26 tile mỗi cửa sổ; vẫn có traffic/base_roads và 3D building. Render max 54.07ms và 46.92ms.</td>
+            <td>Spike kéo dài sau đỉnh 65-70s, cho thấy tile burst chưa kết thúc ngay mà lan sang các frame tiếp theo. Đây là dạng tail latency của pipeline tile/render.</td>
+            <td>Thêm throttling/pacing cho tile update khi pan/zoom, tránh đưa quá nhiều tile/layer update vào render tree trong vài frame liên tiếp.</td>
           </tr>
         </tbody>
       </table>
-      <p class="note" style="margin-top:16px">Cách đọc CPU &gt;200%: giá trị này không có nghĩa là dùng hơn 100% toàn bộ máy. Báo cáo đang quy đổi theo 1 lõi CPU. Trong lần đo nhanh mới nhất không có cửa sổ nào vượt 200%, nên chưa thấy spike CPU tương đương trên 2 lõi trong khoảng 5 giây.</p>
+      <p class="note" style="margin-top:16px">Cách đọc CPU &gt;200%: giá trị này không có nghĩa là dùng hơn 100% toàn bộ máy. Báo cáo đang quy đổi theo 1 lõi CPU. Lần đo nhanh mới nhất có đỉnh 243.69%, tương đương khoảng 2.44 lõi CPU, tức khoảng 30.5% tổng CPU trên thiết bị 8 lõi trong cửa sổ 5 giây.</p>
       <p class="note" style="margin-top:16px"><strong>Cách đọc CPU:</strong> các giá trị CPU trong bảng được quy đổi theo 1 lõi CPU. Ví dụ <strong>169%</strong> nghĩa là app đang dùng lượng CPU tương đương khoảng <strong>1.69 lõi</strong>. Nếu tính trên tổng <strong>8 core</strong> của thiết bị test thì <strong>169% / 8 = khoảng 21.1% tổng CPU</strong>. Tương tự, <strong>100%</strong> trong bảng tương đương khoảng <strong>12.5% tổng CPU</strong>.</p>
 
     </div>
