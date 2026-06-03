@@ -227,6 +227,21 @@
           <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 45.58/45.90°C; GPU 48.95/50.30°C; Skin 42.81/42.90°C; status 3</td><td>Nhiệt vẫn ở mức nặng, cần giảm quality khi chạy lâu.</td></tr>
         </tbody>
       </table>
+      <h3 style="margin-top:22px">Phân tích thời điểm CPU &gt;200% - 3D & HD Map Offline</h3>
+      <table>
+        <thead><tr><th>Thời điểm</th><th>CPU app</th><th>Thành phần đóng góp chính</th><th>Dấu hiệu trong trace</th><th>Nhận định nguyên nhân</th><th>Việc cần kiểm tra</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>70-75s</td>
+            <td class="bad">205.69% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr 81.24%; main/UI 44.12%; JIT 21.34%; MB Worker U3 9.83%; MB Worker U2 9.55%; DefaultDispatch 8.66%</td>
+            <td><code>mbx: io: tile_load_network</code> vẫn xuất hiện dù thiết bị không có default network: <code>hd_road</code> 55 tile, 3D building meshopt 5 tile, <code>geo tiles</code> 6 tile. Cùng lúc có 155 <code>mbx: do-frame</code>, render max khoảng 42.66ms, <code>render_tree_render</code> max 23.34ms và <code>CreateRenderTree</code> max 20.18ms.</td>
+            <td>CPU spike đến từ tổ hợp cache/tile load + render. Vì logcat không có network error mới, khả năng các tile đang được xử lý từ cache hoặc request bị Mapbox/Cronet xử lý nội bộ mà không log lỗi. HD Road vẫn kéo render thread cao.</td>
+            <td>Kiểm tra offline cache policy, tile pack/ambient cache, số tile HD Road được Mapbox yêu cầu khi mất mạng, và có nên giảm prefetch/request khi connectivity = none.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:16px">Cách đọc CPU &gt;200% cho offline: 205.69% tương đương khoảng 2.06 lõi CPU. Trên thiết bị 8 lõi, mức này tương đương khoảng 25.7% tổng CPU, nhưng vẫn đáng chú ý vì xảy ra trong cửa sổ ngắn và đi cùng frame spike.</p>
       <h3 style="margin-top:22px">Đo lại nhanh: 3D & HD Map sau thay đổi server</h3>
       <table>
         <thead><tr><th>Nhóm</th><th>Chỉ số</th><th>Giá trị đo được</th><th>Đánh giá nhanh</th></tr></thead>
