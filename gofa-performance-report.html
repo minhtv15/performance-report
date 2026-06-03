@@ -129,13 +129,13 @@
     <div class="container">
       <div class="section-head">
         <h2>Tổng quan</h2>
-        <p>Kết luận chính sau 9 tổ hợp: các cấu hình có <strong>HD Map</strong> đều làm tăng tải render rõ rệt, đặc biệt trên luồng render Mapbox (<code>MapboxRenderThr</code>), <code>render_tree_render</code>, translucent pass và nhóm layer <code>hd-road-*</code>. <strong>3D MAPBOX & HD MAP</strong> là tổ hợp bất lợi nhất về FPS/jank; <strong>Vệ tinh & HD Map</strong> có GPU memory cao nhất; <strong>3D & HD Map Offline</strong> có RSS max cao nhất và phát sinh lỗi tile request do không có mạng.</p>
+        <p>Kết luận chính sau 9 tổ hợp: các cấu hình có <strong>HD Map</strong> đều làm tăng tải render rõ rệt, đặc biệt trên luồng render Mapbox (<code>MapboxRenderThr</code>), <code>render_tree_render</code>, translucent pass và nhóm layer <code>hd-road-*</code>. <strong>3D MAPBOX & HD MAP</strong> là tổ hợp bất lợi nhất về FPS/jank; <strong>Vệ tinh & HD Map</strong> có GPU memory cao nhất; tổ hợp bổ sung <strong>3D & HD Map Offline</strong> dùng để đánh giá nhanh hành vi cache/render khi thiết bị không có mạng.</p>
       </div>
       <div class="kpi">
         <div class="card"><div class="card-title">CPU app trung bình</div><div class="card-value bad">169.15%</div><div class="card-sub">3D MAPBOX & HD MAP, ~1.69 cores</div></div>
         <div class="card"><div class="card-title">Mapbox render FPS</div><div class="card-value bad">26.26</div><div class="card-sub">Worst-case: 3D MAPBOX & HD MAP</div></div>
         <div class="card"><div class="card-title">Render avg</div><div class="card-value bad">29.37ms</div><div class="card-sub">P99 51.86ms, jank 14.00%</div></div>
-        <div class="card"><div class="card-title">RAM app đang dùng (RSS) max</div><div class="card-value warn">781 MB</div><div class="card-sub">3D & HD Map Offline, avg 677 MB</div></div>
+        <div class="card"><div class="card-title">RAM app đang dùng (RSS) avg / max</div><div class="card-value warn">692 / 740 MB</div><div class="card-sub">3D & HD Map trong bảng chính</div></div>
         <div class="card"><div class="card-title">GPU memory avg</div><div class="card-value bad">441.6 MB</div><div class="card-sub">Vệ tinh & HD Map, max 460.1 MB</div></div>
       </div>
       <table style="margin-top:16px">
@@ -146,7 +146,7 @@
           <tr><td>CPU app</td><td class="bad">3D MAPBOX & HD MAP - 169.15%</td><td class="good">Chỉ Vệ tinh - 87.59%</td><td>HD Map và Mapbox 3D basemap làm tăng CPU render/main/JIT.</td></tr>
           <tr><td>Render FPS / jank</td><td class="bad">3D MAPBOX & HD MAP - 26.26 FPS, 14.00% frame &gt;33.3ms</td><td class="good">Chỉ Vệ tinh - 29.92 FPS, 0.00% frame &gt;33.3ms</td><td>Ưu tiên giảm basemap 3D/symbol + HD overlay khi tương tác.</td></tr>
           <tr><td>Frame time</td><td class="bad">3D MAPBOX & HD MAP - avg 29.37ms, P99 51.86ms</td><td class="good">Chỉ Vệ tinh - avg 12.51ms, P99 21.76ms</td><td>Frame budget 30 FPS bị đe dọa ở Mapbox 3D + HD.</td></tr>
-          <tr><td>RSS memory</td><td class="warn">3D & HD Map Offline - 677.03 / 781.42 MB</td><td class="good">Chỉ Vệ tinh - 500.89 / 610.69 MB</td><td>Offline có RSS max cao nhất; cần theo dõi cache/tile retry khi mất mạng.</td></tr>
+          <tr><td>RSS memory</td><td class="warn">3D & HD Map - 691.75 / 740.46 MB</td><td class="good">Chỉ Vệ tinh - 500.89 / 610.69 MB</td><td>Theo dõi memory growth khi bật HD Road + 3D building.</td></tr>
           <tr><td>GPU memory</td><td class="bad">Vệ tinh & HD Map - 441.57 / 460.11 MB</td><td class="good">Chỉ 2D - 155.65 / 157.33 MB</td><td>Raster satellite + HD overlay là tổ hợp tốn GPU memory nhất.</td></tr>
           <tr><td>Thermal</td><td class="bad">Chỉ 3D MAPBOX - SKIN 43.97 / 44.20°C</td><td class="good">Chỉ Vệ tinh - SKIN 40.11 / 40.60°C</td><td>Cần adaptive quality theo thermal status, pitch, zoom và interaction state.</td></tr>
         </tbody>
@@ -211,20 +211,20 @@
       <table>
         <thead><tr><th>Nhóm</th><th>Chỉ số</th><th>Giá trị đo được</th><th>Đánh giá</th></tr></thead>
         <tbody>
-          <tr><td>Điều kiện đo</td><td>Kết nối mạng</td><td class="warn">Active default network: none</td><td>Logcat xác nhận <code>ERR_INTERNET_DISCONNECTED</code> trên tile request.</td></tr>
-          <tr><td>Trace</td><td>Duration</td><td>119.90s</td><td>Độ dài tương đương các tổ hợp khác.</td></tr>
-          <tr><td>CPU</td><td>App CPU trung bình</td><td class="bad">167.09% theo 1 lõi CPU</td><td>Gần bằng 3D & HD Map có internet; mất mạng không làm CPU giảm đáng kể.</td></tr>
-          <tr><td>CPU</td><td>MapboxRenderThr</td><td class="bad">81.68% theo 1 lõi CPU</td><td>Cao hơn 3D & HD Map có internet, cho thấy render thread vẫn là điểm nóng chính.</td></tr>
-          <tr><td>CPU</td><td>Main/UI thread</td><td class="warn">40.34% theo 1 lõi CPU</td><td>Vẫn ở mức đáng chú ý nhưng không phải bottleneck chính.</td></tr>
-          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="bad">677.03 / 781.42 MB</td><td>Max cao nhất trong bộ đo hiện tại; cần kiểm tra cache/tile retry khi offline.</td></tr>
-          <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="warn">68.67 / 147.79 MB</td><td>Cao hơn nhóm 3D/2D thông thường; đây là tín hiệu cần theo dõi khi mất mạng kéo dài.</td></tr>
-          <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="warn">292.74 / 295.88 MB</td><td>Cao hơn 3D & HD Map có internet, nhưng vẫn thấp hơn Vệ tinh & HD Map.</td></tr>
-          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="good">29.93 FPS</td><td>FPS trung bình tốt, nhưng chưa phản ánh hết spike frame.</td></tr>
-          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="bad">26.09 / 32.69 / 42.46 ms</td><td>P99 vượt 33.3ms, có spike rõ khi offline.</td></tr>
-          <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="bad">166 / 3589 = 4.63%</td><td>Jank cao hơn 3D & HD Map có internet, dù FPS trung bình gần 30.</td></tr>
-          <tr><td>Layer</td><td>Top cost layer</td><td><code>hd-road-polygon-street</code> - 1953.12ms total, 0.5746ms/frame</td><td>Nhóm HD Road vẫn là nguồn render nặng nhất.</td></tr>
-          <tr><td>Network</td><td>Tile request khi offline</td><td class="bad">407 lỗi <code>ERR_INTERNET_DISCONNECTED</code>, 34 overlong response</td><td>Cần fail-fast/cache policy tốt hơn khi không có mạng.</td></tr>
-          <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 45.25/45.70°C; GPU 48.63/49.50°C; Skin 42.44/42.60°C; status 3</td><td>Nhiệt vẫn ở mức nặng, tương đương nhóm HD Map.</td></tr>
+          <tr><td>Điều kiện đo</td><td>Kết nối mạng</td><td class="warn">Active default network: none</td><td>Thiết bị không có mạng trong lúc đo. Logcat không phát sinh lỗi network mới, khả năng dữ liệu render chính đã có trong cache.</td></tr>
+          <tr><td>Trace</td><td>Duration</td><td>119.94s</td><td>Độ dài tương đương các tổ hợp khác.</td></tr>
+          <tr><td>CPU</td><td>App CPU trung bình</td><td class="bad">164.61% theo 1 lõi CPU</td><td>Mất mạng không làm render workload giảm nhiều; app vẫn dùng khoảng 1.65 lõi CPU trung bình.</td></tr>
+          <tr><td>CPU</td><td>MapboxRenderThr</td><td class="bad">81.46% theo 1 lõi CPU</td><td>Render thread vẫn là điểm nóng chính.</td></tr>
+          <tr><td>CPU</td><td>Main/UI thread</td><td class="warn">40.94% theo 1 lõi CPU</td><td>Vẫn đáng chú ý, nhưng thấp hơn MapboxRenderThr.</td></tr>
+          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="good">567.61 / 608.26 MB</td><td>Thấp hơn lần offline trước, cho thấy cache/server state hiện tại không làm RSS tăng mạnh.</td></tr>
+          <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="warn">134.84 / 135.13 MB</td><td>Swap cao và ổn định; cần theo dõi nếu dùng offline lâu hoặc đổi nhiều vùng bản đồ.</td></tr>
+          <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="warn">257.04 / 260.11 MB</td><td>Thấp hơn lần offline trước và gần mức 3D & HD Map có internet.</td></tr>
+          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="good">31.18 FPS</td><td>FPS trung bình khá, nhưng vẫn cần đọc kèm P99 và frame &gt;33.3ms.</td></tr>
+          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="bad">25.18 / 33.03 / 42.49 ms</td><td>P99 vẫn vượt 33.3ms, có spike khi render/cache tile diễn ra.</td></tr>
+          <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="bad">179 / 3740 = 4.79%</td><td>Jank vẫn cao hơn mức mong muốn dù không có network error mới.</td></tr>
+          <tr><td>Layer</td><td>Top cost layer</td><td><code>hd-road-polygon-street</code> - 1941.67ms total, 0.5679ms/frame</td><td>Nhóm HD Road vẫn là nguồn render nặng nhất.</td></tr>
+          <tr><td>Network</td><td>Tile request khi offline</td><td class="warn">Không thấy <code>ERR_INTERNET_DISCONNECTED</code> / overlong response trong logcat mới</td><td>Điều này không có nghĩa là online; connectivity vẫn là none. Nhiều khả năng tile cần render đã được cache hoặc request không log lỗi trong cửa sổ đo.</td></tr>
+          <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 45.58/45.90°C; GPU 48.95/50.30°C; Skin 42.81/42.90°C; status 3</td><td>Nhiệt vẫn ở mức nặng, cần giảm quality khi chạy lâu.</td></tr>
         </tbody>
       </table>
       <h3 style="margin-top:22px">Đo lại nhanh: 3D & HD Map sau thay đổi server</h3>
@@ -251,16 +251,16 @@
         <thead><tr><th>Thời điểm</th><th>CPU app</th><th>Thành phần đóng góp chính</th><th>Dấu hiệu trong trace</th><th>Nhận định nguyên nhân</th><th>Việc cần kiểm tra</th></tr></thead>
         <tbody>
           <tr>
-            <td>65-70s</td>
-            <td class="bad">217.41% theo 1 lõi CPU</td>
-            <td>MapboxRenderThr 78.06%; main/UI 42.27%; JIT 19.67%; MB Worker U3 12.29%; MB Worker U4 10.28%; MB Worker U2 9.84%</td>
-            <td>Nhiều <code>mbx: io: tile_load_network</code> chạy đồng thời: <code>hd_road</code> 46 tile, <code>traffic</code> 36 tile, <code>base_roads</code> 36 tile, <code>geo tiles</code> 6 tile, 3D building meshopt 5 tile. Cùng lúc có 176 <code>mbx: do-frame</code> và render slice max khoảng 42ms.</td>
-            <td>CPU spike không chỉ do vẽ layer. Đây là thời điểm vừa tải/chuẩn bị tile mạng vừa render lại nhiều frame. HD Road, traffic/base_roads và 3D building làm worker thread tăng; render thread vẫn cao vì phải cập nhật render tree/translucent pass.</td>
-            <td>Kiểm tra server tile size, số feature/vertex theo z, cache headers, tile request trùng lặp, và chính sách throttle/prefetch khi camera thay đổi nhanh.</td>
+            <td>70-75s</td>
+            <td class="bad">205.69% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr 81.24%; main/UI 44.12%; JIT 21.34%; MB Worker U3 9.83%; MB Worker U2 9.55%; DefaultDispatch 8.66%</td>
+            <td><code>mbx: io: tile_load_network</code> vẫn xuất hiện dù thiết bị không có default network: <code>hd_road</code> 55 tile, 3D building meshopt 5 tile, <code>geo tiles</code> 6 tile. Cùng lúc có 155 <code>mbx: do-frame</code>, <code>render</code> max khoảng 42.66ms, <code>render_tree_render</code> max 23.34ms và <code>CreateRenderTree</code> max 20.18ms.</td>
+            <td>CPU spike đến từ tổ hợp cache/tile load + render. Vì logcat không có network error mới, khả năng các tile đang được xử lý từ cache hoặc request bị Mapbox/Cronet xử lý nội bộ mà không log lỗi. HD Road vẫn kéo render thread cao.</td>
+            <td>Kiểm tra offline cache policy, tile pack/ambient cache, số tile HD Road được Mapbox yêu cầu khi mất mạng, và có nên giảm prefetch/request khi connectivity = none.</td>
           </tr>
         </tbody>
       </table>
-      <p class="note" style="margin-top:16px">Cách đọc CPU &gt;200%: giá trị này không có nghĩa là dùng hơn 100% toàn bộ máy. Báo cáo đang quy đổi theo 1 lõi CPU, nên 217.41% tương đương khoảng 2.17 lõi CPU. Trên thiết bị 8 lõi, mức này tương đương khoảng 27.2% tổng CPU, nhưng vẫn đáng chú ý vì nó tập trung vào thời điểm ngắn và có thể tạo jank.</p>
+      <p class="note" style="margin-top:16px">Cách đọc CPU &gt;200%: giá trị này không có nghĩa là dùng hơn 100% toàn bộ máy. Báo cáo đang quy đổi theo 1 lõi CPU, nên 205.69% tương đương khoảng 2.06 lõi CPU. Trên thiết bị 8 lõi, mức này tương đương khoảng 25.7% tổng CPU, nhưng vẫn đáng chú ý vì nó tập trung vào thời điểm ngắn và có thể tạo jank.</p>
       <p class="note" style="margin-top:16px"><strong>Cách đọc CPU:</strong> các giá trị CPU trong bảng được quy đổi theo 1 lõi CPU. Ví dụ <strong>169%</strong> nghĩa là app đang dùng lượng CPU tương đương khoảng <strong>1.69 lõi</strong>. Nếu tính trên tổng <strong>8 core</strong> của thiết bị test thì <strong>169% / 8 = khoảng 21.1% tổng CPU</strong>. Tương tự, <strong>100%</strong> trong bảng tương đương khoảng <strong>12.5% tổng CPU</strong>.</p>
 
     </div>
@@ -747,7 +747,7 @@
           <tr><td><strong>Chỉ Vệ tinh</strong></td><td>Nhẹ nhất về CPU/jank nhưng GPU memory vẫn cao hơn 2D do raster satellite.</td><td>Giữ làm baseline cho satellite; kiểm soát cache/raster tile khi pan/zoom nhanh.</td><td>Tối ưu kích thước raster tile, cache headers và chiến lược tile size nếu có quyền điều chỉnh.</td><td>Duy trì FPS ổn định, thermal thấp và không tăng GPU memory bất thường.</td></tr>
           <tr><td><strong>3D MAPBOX & HD MAP</strong></td><td>Tổ hợp xấu nhất về FPS/jank; Mapbox 3D basemap cộng với HD Map làm render thread rất nặng.</td><td>Tạo performance mode bắt buộc: giảm/tắt <code>trees</code>, <code>3d-building</code>, POI/transit/road labels phụ và HD extrusion khi đang thao tác hoặc navigation.</td><td>Giảm LOD HD Road khi chạy cùng Mapbox 3D; tránh chồng quá nhiều geometry 3D từ cả basemap và HD overlay.</td><td>Giảm frame &gt;33.3ms từ mức 14%, kéo P99 xuống và giảm nhiệt khi dùng lâu.</td></tr>
           <tr><td><strong>Chỉ 3D MAPBOX</strong></td><td>Vẫn nặng dù không có HD Map, chủ yếu do basemap 3D/symbol.</td><td>Giảm <code>trees</code>, <code>3d-building</code>, POI/transit/road labels theo zoom/pitch/interaction; ưu tiên navigation performance mode.</td><td>Nếu dùng style Mapbox tùy biến, tạo preset 3D nhẹ hơn cho navigation.</td><td>Giảm jank nền của Mapbox 3D trước khi bật thêm HD Map.</td></tr>
-          <tr><td><strong>3D & HD Map Offline</strong></td><td>Không có internet nhưng render workload không giảm; RSS max và swap tăng, logcat có nhiều tile request lỗi/overlong.</td><td>Khi mất mạng, bật offline mode rõ ràng: dừng/reduce request tile online, dùng cache sẵn có, giảm retry liên tục, hiển thị trạng thái offline và giữ HD Map ở quality thấp nếu cache thiếu.</td><td>Đảm bảo cache headers/TTL, tile pack offline hoặc fallback tile nhẹ; server/API nên hỗ trợ fail-fast thay vì để request treo lâu khi mất mạng.</td><td>Giảm retry/network churn, giữ RAM/swap ổn định và giảm jank spike khi thiết bị không có internet.</td></tr>
+          <tr><td><strong>3D & HD Map Offline</strong></td><td>Không có internet nhưng render workload vẫn cao; lần đo mới không phát sinh network error trong logcat, cho thấy cache đang tham gia nhiều.</td><td>Khi mất mạng, bật offline mode rõ ràng: dùng cache/tile pack sẵn có, giảm prefetch/request online, giảm quality HD Map nếu cache thiếu và giữ UI báo trạng thái offline.</td><td>Đảm bảo cache headers/TTL, tile pack offline hoặc fallback tile nhẹ; cấu hình server cần giúp client cache ổn định các tile HD Road quan trọng.</td><td>Giữ RAM/swap ổn định, giảm jank spike khi thiết bị không có internet và tránh request dư khi connectivity = none.</td></tr>
         </tbody>
       </table>
 
@@ -776,7 +776,7 @@
     const cpuTimelineSatelliteOnly = [74, 78, 89, 79, 77, 86, 83, 96, 88, 75, 83, 89, 83, 87, 121, 85, 84, 82, 85, 96, 90, 97, 98, 98];
     const cpuTimeline3dMapboxHd = [109.97, 137.18, 121.27, 119.20, 142.46, 140.84, 183.71, 170.44, 169.28, 179.20, 186.26, 176.73, 178.65, 256.41, 195.61, 190.37, 177.66, 179.11, 189.15, 171.58, 174.77, 168.98, 170.05, 169.78];
     const cpuTimeline3dMapboxOnly = [139.49, 169.99, 140.13, 155.96, 169.01, 153.27, 167.78, 180.75, 157.47, 170.65, 174.25, 158.34, 143.75, 205.21, 168.62, 157.40, 158.18, 153.00, 158.77, 155.76, 156.28, 149.52, 152.02, 148.73];
-    const cpuTimeline3dHdOffline = [171.55, 145.36, 141.25, 148.90, 151.84, 169.45, 184.75, 167.89, 160.87, 171.97, 164.29, 167.28, 224.94, 178.91, 177.20, 177.60, 169.39, 177.68, 175.06, 165.79, 166.39, 165.23, 135.48, 148.01];
+    const cpuTimeline3dHdOffline = [140.80, 137.62, 197.96, 140.12, 141.10, 162.81, 155.98, 172.17, 165.31, 162.11, 166.09, 164.16, 165.10, 168.90, 205.69, 166.17, 168.13, 164.29, 172.04, 171.93, 170.14, 166.95, 170.81, 152.19];
     const timeLabels = cpuTimeline3dHd.map((_, i) => `${i * 5}s`);
 
     new Chart(document.getElementById('cpuChart'), {
@@ -811,7 +811,7 @@
           { label: 'Chỉ Vệ tinh', data: [87.59, 43.45, 24.57, 5.45, 7.90], backgroundColor: 'rgba(56,189,248,0.30)', borderColor: '#38bdf8', borderWidth: 1 },
           { label: '3D MAPBOX & HD MAP', data: [169.15, 81.74, 37.51, 18.46, 14.40], backgroundColor: 'rgba(239,68,68,0.30)', borderColor: '#ef4444', borderWidth: 1 },
           { label: 'Chỉ 3D MAPBOX', data: [160.24, 84.53, 40.72, 10.01, 14.41], backgroundColor: 'rgba(245,158,11,0.30)', borderColor: '#f59e0b', borderWidth: 1 },
-          { label: '3D & HD Map Offline', data: [167.09, 81.68, 40.34, 18.21, 8.74], backgroundColor: 'rgba(100,116,139,0.30)', borderColor: '#64748b', borderWidth: 1 }
+          { label: '3D & HD Map Offline', data: [164.61, 81.46, 40.94, 19.39, 10.27], backgroundColor: 'rgba(100,116,139,0.30)', borderColor: '#64748b', borderWidth: 1 }
         ]
       },
       options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
@@ -830,7 +830,7 @@
           { label: 'Chỉ Vệ tinh', data: [12.51, 7.65, 5.97, 4.63, 0.91, 2.26], backgroundColor: 'rgba(56,189,248,0.30)', borderColor: '#38bdf8', borderWidth: 1 },
           { label: '3D MAPBOX & HD MAP', data: [29.37, 15.32, 12.79, 13.14, 7.25, 3.31], backgroundColor: 'rgba(239,68,68,0.30)', borderColor: '#ef4444', borderWidth: 1 },
           { label: 'Chỉ 3D MAPBOX', data: [28.46, 13.98, 11.59, 13.43, 8.58, 2.65], backgroundColor: 'rgba(245,158,11,0.30)', borderColor: '#f59e0b', borderWidth: 1 },
-          { label: '3D & HD Map Offline', data: [26.09, 13.52, 21.31, 11.82, 0.00, 0.00], backgroundColor: 'rgba(100,116,139,0.30)', borderColor: '#64748b', borderWidth: 1 }
+          { label: '3D & HD Map Offline', data: [25.18, 13.51, 21.28, 11.81, 0.00, 0.00], backgroundColor: 'rgba(100,116,139,0.30)', borderColor: '#64748b', borderWidth: 1 }
         ]
       },
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: 'ms' } } } }
@@ -849,7 +849,7 @@
           { label: 'Chỉ Vệ tinh top layer cost', data: [3800.70, 1755.30, 1229.34, 1129.64, 904.65, 882.50, 738.66, 670.04, 621.79, 618.85], backgroundColor: 'rgba(56,189,248,0.28)', borderColor: '#38bdf8', borderWidth: 1 },
           { label: '3D MAPBOX & HD MAP top layer cost', data: [1737.07, 1596.91, 1459.86, 1289.08, 1227.53, 1212.91, 1046.50, 936.17, 894.89, 815.18], backgroundColor: 'rgba(239,68,68,0.28)', borderColor: '#ef4444', borderWidth: 1 },
           { label: 'Chỉ 3D MAPBOX top layer cost', data: [1848.17, 1733.16, 1707.12, 1181.01, 958.61, 804.70, 803.66, 745.55, 727.20, 690.70], backgroundColor: 'rgba(245,158,11,0.28)', borderColor: '#f59e0b', borderWidth: 1 },
-          { label: '3D & HD Map Offline top layer cost', data: [1953.12, 1714.78, 1325.88, 1024.67, 854.42, 851.04, 817.01, 814.76, 626.59, 606.17], backgroundColor: 'rgba(100,116,139,0.28)', borderColor: '#64748b', borderWidth: 1 }
+          { label: '3D & HD Map Offline top layer cost', data: [1941.67, 1670.02, 1295.62, 1057.50, 834.76, 830.18, 826.27, 805.69, 607.21, 604.34], backgroundColor: 'rgba(100,116,139,0.28)', borderColor: '#64748b', borderWidth: 1 }
         ]
       },
       options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
@@ -868,7 +868,7 @@
           { label: 'Chỉ Vệ tinh', data: [12.48, 16.33, 18.67, 21.76, 25.94], backgroundColor: 'rgba(56,189,248,0.30)', borderColor: '#38bdf8', borderWidth: 1 },
           { label: '3D MAPBOX & HD MAP', data: [29.19, 33.97, 38.04, 51.86, 66.81], backgroundColor: 'rgba(239,68,68,0.30)', borderColor: '#ef4444', borderWidth: 1 },
           { label: 'Chỉ 3D MAPBOX', data: [28.33, 32.18, 34.57, 41.90, 55.54], backgroundColor: 'rgba(245,158,11,0.30)', borderColor: '#f59e0b', borderWidth: 1 },
-          { label: '3D & HD Map Offline', data: [26.60, 30.00, 32.69, 42.46, 47.44], backgroundColor: 'rgba(100,116,139,0.30)', borderColor: '#64748b', borderWidth: 1 }
+          { label: '3D & HD Map Offline', data: [26.67, 30.14, 33.03, 42.49, 49.78], backgroundColor: 'rgba(100,116,139,0.30)', borderColor: '#64748b', borderWidth: 1 }
         ]
       },
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: 'ms' } } } }
@@ -878,7 +878,7 @@
       type: 'bar',
       data: {
         labels: ['3D & HD Map', 'Chỉ 3D', '2D & HD Map', 'Chỉ 2D', 'Vệ tinh & HD Map', 'Chỉ Vệ tinh', '3D MAPBOX & HD MAP', 'Chỉ 3D MAPBOX', '3D & HD Map Offline'],
-        datasets: [{ label: 'Frames >33.3ms (%)', data: [3.74, 0.20, 2.51, 0.00, 1.76, 0.00, 14.00, 7.32, 4.63], backgroundColor: ['rgba(251,113,133,0.42)', 'rgba(52,211,153,0.34)', 'rgba(249,115,22,0.30)', 'rgba(167,139,250,0.30)', 'rgba(244,114,182,0.34)', 'rgba(56,189,248,0.30)', 'rgba(239,68,68,0.36)', 'rgba(245,158,11,0.34)', 'rgba(100,116,139,0.34)'], borderColor: ['#fb7185', '#34d399', '#f97316', '#a78bfa', '#f472b6', '#38bdf8', '#ef4444', '#f59e0b', '#64748b'], borderWidth: 1 }]
+        datasets: [{ label: 'Frames >33.3ms (%)', data: [3.74, 0.20, 2.51, 0.00, 1.76, 0.00, 14.00, 7.32, 4.79], backgroundColor: ['rgba(251,113,133,0.42)', 'rgba(52,211,153,0.34)', 'rgba(249,115,22,0.30)', 'rgba(167,139,250,0.30)', 'rgba(244,114,182,0.34)', 'rgba(56,189,248,0.30)', 'rgba(239,68,68,0.36)', 'rgba(245,158,11,0.34)', 'rgba(100,116,139,0.34)'], borderColor: ['#fb7185', '#34d399', '#f97316', '#a78bfa', '#f472b6', '#38bdf8', '#ef4444', '#f59e0b', '#64748b'], borderWidth: 1 }]
       },
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: '%' }, beginAtZero: true } } }
     });
