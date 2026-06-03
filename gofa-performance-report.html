@@ -227,6 +227,40 @@
           <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 45.25/45.70°C; GPU 48.63/49.50°C; Skin 42.44/42.60°C; status 3</td><td>Nhiệt vẫn ở mức nặng, tương đương nhóm HD Map.</td></tr>
         </tbody>
       </table>
+      <h3 style="margin-top:22px">Đo lại nhanh: 3D & HD Map sau thay đổi server</h3>
+      <table>
+        <thead><tr><th>Nhóm</th><th>Chỉ số</th><th>Giá trị đo được</th><th>Đánh giá nhanh</th></tr></thead>
+        <tbody>
+          <tr><td>Điều kiện đo</td><td>Kết nối mạng</td><td class="good">Online, không thấy lỗi network trong logcat</td><td>Phù hợp để đánh giá tác động sau thay đổi server.</td></tr>
+          <tr><td>Trace</td><td>Duration</td><td>119.96s</td><td>Độ dài tương đương các bài đo trước.</td></tr>
+          <tr><td>CPU</td><td>App CPU trung bình</td><td class="warn">152.20% theo 1 lõi CPU</td><td>Thấp hơn mốc 3D & HD Map cũ trong bảng chính, nhưng vẫn là mức cao cho màn hình bản đồ.</td></tr>
+          <tr><td>CPU</td><td>MapboxRenderThr</td><td class="bad">74.21% theo 1 lõi CPU</td><td>Luồng render Mapbox vẫn là phần tốn CPU nhất.</td></tr>
+          <tr><td>CPU</td><td>Main/UI thread</td><td class="warn">34.81% theo 1 lõi CPU</td><td>Không phải điểm nóng chính trong lần đo này.</td></tr>
+          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="warn">696.34 / 749.36 MB</td><td>RSS vẫn cao; max thấp hơn offline nhưng cao hơn ngưỡng nên cần theo dõi khi dùng lâu.</td></tr>
+          <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="good">20.59 / 63.11 MB</td><td>Swap thấp hơn offline rõ rệt, chưa phải vấn đề chính.</td></tr>
+          <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="warn">288.54 / 292.82 MB</td><td>Cao hơn 3D & HD Map cũ trong bảng chính, nhưng thấp hơn Vệ tinh & HD Map.</td></tr>
+          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="good">38.35 FPS</td><td>FPS trung bình tốt hơn các bài đo cũ; cần đọc kèm P99 vì vẫn có spike.</td></tr>
+          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="warn">18.65 / 30.76 / 40.56 ms</td><td>Avg tốt hơn, nhưng P99 vẫn vượt 33.3ms nên vẫn có giật cục bộ.</td></tr>
+          <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="warn">143 / 4600 = 3.11%</td><td>Jank thấp hơn offline, nhưng chưa về mức tốt như Chỉ 2D/Chỉ Vệ tinh.</td></tr>
+          <tr><td>Layer</td><td>Top cost layer</td><td><code>hd-road-polygon-street</code> - 1693.26ms total, 0.4927ms/frame</td><td>HD Road polygon vẫn là nhóm render nặng nhất dù server đã đổi cấu hình.</td></tr>
+          <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 46.54/46.90°C; GPU 50.60/52.30°C; Skin 43.22/43.30°C; status 3</td><td>Nhiệt cao hơn offline ở GPU/Skin; cần đánh giá thêm nếu chạy lâu hơn 2 phút.</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:22px">Phân tích thời điểm CPU &gt;200%</h3>
+      <table>
+        <thead><tr><th>Thời điểm</th><th>CPU app</th><th>Thành phần đóng góp chính</th><th>Dấu hiệu trong trace</th><th>Nhận định nguyên nhân</th><th>Việc cần kiểm tra</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>65-70s</td>
+            <td class="bad">217.41% theo 1 lõi CPU</td>
+            <td>MapboxRenderThr 78.06%; main/UI 42.27%; JIT 19.67%; MB Worker U3 12.29%; MB Worker U4 10.28%; MB Worker U2 9.84%</td>
+            <td>Nhiều <code>mbx: io: tile_load_network</code> chạy đồng thời: <code>hd_road</code> 46 tile, <code>traffic</code> 36 tile, <code>base_roads</code> 36 tile, <code>geo tiles</code> 6 tile, 3D building meshopt 5 tile. Cùng lúc có 176 <code>mbx: do-frame</code> và render slice max khoảng 42ms.</td>
+            <td>CPU spike không chỉ do vẽ layer. Đây là thời điểm vừa tải/chuẩn bị tile mạng vừa render lại nhiều frame. HD Road, traffic/base_roads và 3D building làm worker thread tăng; render thread vẫn cao vì phải cập nhật render tree/translucent pass.</td>
+            <td>Kiểm tra server tile size, số feature/vertex theo z, cache headers, tile request trùng lặp, và chính sách throttle/prefetch khi camera thay đổi nhanh.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:16px">Cách đọc CPU &gt;200%: giá trị này không có nghĩa là dùng hơn 100% toàn bộ máy. Báo cáo đang quy đổi theo 1 lõi CPU, nên 217.41% tương đương khoảng 2.17 lõi CPU. Trên thiết bị 8 lõi, mức này tương đương khoảng 27.2% tổng CPU, nhưng vẫn đáng chú ý vì nó tập trung vào thời điểm ngắn và có thể tạo jank.</p>
       <p class="note" style="margin-top:16px"><strong>Cách đọc CPU:</strong> các giá trị CPU trong bảng được quy đổi theo 1 lõi CPU. Ví dụ <strong>169%</strong> nghĩa là app đang dùng lượng CPU tương đương khoảng <strong>1.69 lõi</strong>. Nếu tính trên tổng <strong>8 core</strong> của thiết bị test thì <strong>169% / 8 = khoảng 21.1% tổng CPU</strong>. Tương tự, <strong>100%</strong> trong bảng tương đương khoảng <strong>12.5% tổng CPU</strong>.</p>
 
     </div>
