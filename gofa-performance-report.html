@@ -217,12 +217,12 @@
             <td class="bad">251.92% theo 1 lõi CPU</td>
             <td>MapboxRenderThr 72.41%; main/UI 45.75%; JIT 24.77%; MB Worker U3 18.41%; MB Worker U2 17.77%; MB Worker U4 17.76%; MB Worker U1 17.26%; DefaultDispatch 12.81%; CronetNet 5.77%; TileStoreFS 3.52%</td>
             <td><code>hd_road</code> network load 25 tile và cache load 27 tile; <code>traffic</code> network/cache khoảng 20-21 tile; <code>base_roads</code> network/cache khoảng 20-21 tile; <code>models_p</code> network/cache 23-24 tile. Cùng lúc có 217 <code>mbx: do-frame</code>, render max 38.20ms, <code>render_tree_render</code> max 23.27ms và <code>CreateRenderTree</code> max 19.98ms.</td>
-            <td>Đây là cửa sổ CPU &gt;200% duy nhất của trace gốc. Nguyên nhân chính là tile burst: nhiều nguồn tile hoàn tất hoặc được đọc từ cache trong cùng 5 giây, làm 4 luồng MB Worker tăng đồng thời. Render thread vẫn cao vì HD Road polygon/line/extrusion và 3D building tiếp tục phải vẽ trong lúc render tree cập nhật.</td>
+            <td>Nguyên nhân chính là tile burst: nhiều nguồn tile hoàn tất hoặc được đọc từ cache trong cùng 5 giây, làm 4 luồng MB Worker tăng đồng thời. Render thread vẫn cao vì HD Road polygon/line/extrusion và 3D building tiếp tục phải vẽ trong lúc render tree cập nhật.</td>
             <td>Ưu tiên giảm burst ở thời điểm đổi viewport: kiểm tra prefetch, cache hit/miss, số tile HD Road/traffic/base_roads được yêu cầu cùng lúc, và giảm geometry/LOD HD Road để worker + render thread không tăng cùng thời điểm.</td>
           </tr>
         </tbody>
       </table>
-      <p class="note" style="margin-top:16px">Cách đọc: đỉnh 251.92% tương đương khoảng 2.52 lõi CPU. Trên thiết bị 8 lõi, mức này xấp xỉ 31.5% tổng CPU trong cửa sổ 5 giây. Các mốc còn lại của trace gốc đều dưới 200%.</p>
+      <p class="note" style="margin-top:16px">Cách đọc: đỉnh 251.92% tương đương khoảng 2.52 lõi CPU. Trên thiết bị 8 lõi, mức này xấp xỉ 31.5% tổng CPU trong cửa sổ 5 giây.</p>
       <h3 style="margin-top:22px">Tổ hợp bổ sung: 3D & HD Map Offline</h3>
       <table>
         <thead><tr><th>Nhóm</th><th>Chỉ số</th><th>Giá trị đo được</th><th>Đánh giá</th></tr></thead>
