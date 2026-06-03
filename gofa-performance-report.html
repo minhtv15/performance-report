@@ -620,23 +620,6 @@
           <div class="chart-wrap"><canvas id="threadChart"></canvas></div>
         </div>
       </div>
-      <table style="margin-top:16px">
-        <thead><tr><th>Thành phần CPU</th><th>3D & HD Map</th><th>Chỉ 3D</th><th>2D & HD Map</th><th>Chỉ 2D</th><th>Vệ tinh & HD Map</th><th>Chỉ Vệ tinh</th><th>3D MAPBOX & HD MAP</th><th>Chỉ 3D MAPBOX</th><th>Đánh giá</th></tr></thead>
-        <tbody>
-          <tr><td>Toàn bộ app (<code>com.gofa.mobile</code>)</td><td class="bad">200.71s / 167.36%</td><td class="warn">161.15s / 134.37%</td><td class="bad">192.69s / 160.64%</td><td class="warn">156.95s / 130.86%</td><td class="bad">201.74s / 168.21%</td><td class="good">105.09s / 87.59%</td><td class="bad">202.93s / 169.15%</td><td class="bad">192.22s / 160.24%</td><td>Tổng CPU toàn app trong bài đo. Dùng để biết tổ hợp nào làm máy phải xử lý nhiều nhất.</td></tr>
-          <tr><td>Luồng vẽ bản đồ Mapbox (<code>MapboxRenderThr</code>)</td><td class="bad">87.95s / 73.34%</td><td class="warn">82.00s / 68.37%</td><td class="bad">86.69s / 72.27%</td><td class="warn">80.00s / 66.70%</td><td class="warn">83.03s / 69.23%</td><td class="good">52.13s / 43.45%</td><td class="bad">98.07s / 81.74%</td><td class="bad">101.40s / 84.53%</td><td>CPU riêng cho việc vẽ bản đồ Mapbox. Đây là điểm cần chú ý nhất khi FPS thấp hoặc map bị giật.</td></tr>
-          <tr><td>Luồng chính của app (<code>main</code>)</td><td class="warn">50.53s / 42.14%</td><td class="warn">43.06s / 35.91%</td><td class="warn">47.94s / 39.96%</td><td class="warn">43.22s / 36.04%</td><td class="warn">48.99s / 40.84%</td><td class="good">29.48s / 24.57%</td><td class="warn">45.01s / 37.51%</td><td class="warn">48.85s / 40.72%</td><td>Luồng điều khiển giao diện chính. Nếu cao quá, app có thể phản hồi chậm khi người dùng thao tác.</td></tr>
-          <tr><td>Luồng biên dịch/tối ưu mã khi chạy (<code>Jit thread pool</code>)</td><td class="warn">24.09s / 20.09%</td><td class="good">9.74s / 8.12%</td><td class="warn">21.88s / 18.24%</td><td class="good">9.69s / 8.08%</td><td class="warn">22.97s / 19.15%</td><td class="good">6.54s / 5.45%</td><td class="warn">22.15s / 18.46%</td><td class="good">12.01s / 10.01%</td><td>CPU dùng cho biên dịch/tối ưu mã khi chạy. Dùng để nhận biết app có phát sinh nhiều xử lý runtime hay không.</td></tr>
-          <tr><td>Các luồng xử lý nền Mapbox (<code>MB Worker U*</code>)</td><td>~17.23s / ~14.36%</td><td>~15.49s / ~12.76%</td><td>~17.47s / ~14.57%</td><td>~14.07s / ~11.73%</td><td>~18.39s / ~15.33%</td><td class="good">~9.47s / ~7.90%</td><td>~17.28s / ~14.40%</td><td>~17.30s / ~14.41%</td><td>Các luồng nền Mapbox xử lý dữ liệu bản đồ. Cao hơn nghĩa là app đang chuẩn bị nhiều dữ liệu để render.</td></tr>
-        </tbody>
-      </table>
-      <table style="margin-top:16px">
-        <thead><tr><th>Chỉ số RAM kỹ thuật</th><th>3D & HD Map</th><th>Chỉ 3D</th><th>2D & HD Map</th><th>Chỉ 2D</th><th>Vệ tinh & HD Map</th><th>Chỉ Vệ tinh</th><th>3D MAPBOX & HD MAP</th><th>Chỉ 3D MAPBOX</th><th>Đánh giá</th></tr></thead>
-        <tbody>
-          <tr><td><code>mem.rss</code></td><td class="warn">691.75 / 740.46 MB</td><td class="warn">615.25 / 665.76 MB</td><td class="warn">609.73 / 673.44 MB</td><td class="good">557.81 / 601.23 MB</td><td class="good">535.78 / 630.61 MB</td><td class="good">500.89 / 610.69 MB</td><td class="warn">666.99 / 713.29 MB</td><td class="warn">605.83 / 663.00 MB</td><td>Lượng RAM app đang chiếm. Số trước là trung bình, số sau là mức cao nhất trong bài đo.</td></tr>
-          <tr><td><code>mem.swap</code></td><td class="good">17.52 / 17.56 MB</td><td class="good">17.43 / 17.46 MB</td><td class="good">17.46 / 17.51 MB</td><td class="good">17.46 / 17.51 MB</td><td class="warn">61.92 / 102.58 MB</td><td class="good">17.46 / 17.49 MB</td><td class="good">17.48 / 17.53 MB</td><td class="good">17.48 / 17.53 MB</td><td>RAM ảo hệ thống phải dùng khi RAM căng. Giá trị thấp và ổn định nghĩa là chưa có dấu hiệu thiếu RAM nghiêm trọng.</td></tr>
-        </tbody>
-      </table>
     </div>
   </section>
 
