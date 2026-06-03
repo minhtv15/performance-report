@@ -229,7 +229,7 @@
       </table>
       <h3 style="margin-top:22px">Phân tích thời điểm CPU &gt;200% - 3D & HD Map Offline</h3>
       <table>
-        <thead><tr><th>Thời điểm</th><th>CPU app</th><th>Thành phần đóng góp chính</th><th>Dấu hiệu trong trace</th><th>Nhận định nguyên nhân</th><th>Việc cần kiểm tra</th></tr></thead>
+        <thead><tr><th>Thời điểm</th><th>CPU app</th><th>Thành phần đóng góp chính</th><th>Dấu hiệu trong trace</th><th>Phân tích kỹ thuật</th><th>Việc cần kiểm tra</th></tr></thead>
         <tbody>
           <tr>
             <td>70-75s</td>
@@ -270,7 +270,7 @@
             <td class="bad">203.61% theo 1 lõi CPU</td>
             <td>MapboxRenderThr 79.19%; main/UI 39.45%; MB Worker U4 30.15%; MB Worker U2 12.58%; JIT 12.22%; MB Worker U1 9.60%</td>
             <td><code>hd_road</code> tile load 8 tile, <code>geo tiles</code> 2 tile; cùng lúc có 154 <code>mbx: do-frame</code>, render max 51.40ms, render_tree_render max 26.85ms.</td>
-            <td>Spike đầu phiên do nạp/chuẩn bị tile HD Road và render lại frame. Worker thread tăng mạnh, không chỉ render thread.</td>
+            <td>Đây là spike khởi động/prefetch. MB Worker U4 tăng tới 30.15% cho thấy Mapbox đang xử lý tile nền ở worker: nhận tile, parse vector tile, build bucket/geometry và chuẩn bị dữ liệu cho render tree. Cùng lúc render thread vẫn phải vẽ 154 frame, nên CPU bị cộng dồn giữa worker pipeline và render pipeline. <code>render_tree_render</code> max 26.85ms cho thấy khi tile mới được đưa vào scene, render tree bị cập nhật và frame có nguy cơ vượt budget.</td>
             <td>Kiểm tra tile prefetch ban đầu, cache hit/miss và kích thước tile HD Road sau thay đổi server.</td>
           </tr>
           <tr>
@@ -278,7 +278,7 @@
             <td class="bad">218.36% theo 1 lõi CPU</td>
             <td>MapboxRenderThr 76.45%; main/UI 43.81%; JIT 17.85%; MB Worker U1 12.92%; MB Worker U4 11.98%; MB Worker U2 11.58%</td>
             <td><code>hd_road</code> tile load 51 tile, <code>traffic</code> 35 tile, <code>base_roads</code> 35 tile, 3D building meshopt 5 tile. Cùng lúc có 161 <code>mbx: do-frame</code>, render max 50.53ms.</td>
-            <td>Đây là spike nặng nhất. Nguyên nhân chính là nhiều nguồn tile chạy đồng thời với render HD Road/3D building.</td>
+            <td>Đây là spike nặng nhất vì nhiều source cùng tạo áp lực: <code>hd_road</code>, <code>traffic</code>, <code>base_roads</code> và 3D building. Về kỹ thuật, mỗi nhóm tile có thể kéo theo network/cache lookup, parse, layout, upload buffer/texture và invalidation render tree. HD Road polygon/line làm translucent pass nặng, traffic/base_roads thêm line/casing, còn 3D building thêm geometry 3D. Khi các batch này hoàn tất gần nhau, render thread phải rebuild scene và vẽ lại nhiều layer trong cùng khoảng 5s, làm CPU vượt 2 lõi và frame max vượt 50ms.</td>
             <td>Giảm số tile request đồng thời, rà cache headers/TTL, giảm vertex/feature ở HD Road và traffic tại zoom đang đo.</td>
           </tr>
           <tr>
@@ -286,7 +286,7 @@
             <td class="bad">204.29% theo 1 lõi CPU</td>
             <td>MapboxRenderThr 83.47%; main/UI 50.52%; JIT 29.48%; DefaultDispatch 17.63%; MB Worker U1 4.46%; RenderThread 3.45%</td>
             <td><code>hd_road</code> tile load 13 tile, <code>base_roads</code> 4 tile, <code>traffic</code> 4 tile. Cùng lúc render max 55.90ms, render_tree_render max 31.32ms và CreateRenderTree max 25.33ms.</td>
-            <td>Spike này nghiêng nhiều hơn về main/JIT/render tree, cho thấy ngoài tile load còn có chi phí cập nhật/cấu trúc render.</td>
+            <td>Spike này không chỉ là tile load. Main/UI 50.52% và JIT 29.48% cao hơn hai spike trước, cho thấy app/runtime đang có thêm việc trên main thread hoặc đường code mới được tối ưu JIT trong lúc render. <code>CreateRenderTree</code> max 25.33ms và <code>render_tree_render</code> max 31.32ms cho thấy scene graph/render tree bị cập nhật nặng. Khả năng cao có sự kết hợp giữa tile mới, style/layout invalidation, expression/filter evaluation hoặc update từ camera/location/route khiến Mapbox phải tái tạo nhiều render data trước khi vẽ.</td>
             <td>Kiểm tra expression/filter, style update, route/location/camera update trong khoảng thời gian này.</td>
           </tr>
         </tbody>
