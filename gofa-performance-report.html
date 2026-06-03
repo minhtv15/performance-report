@@ -221,24 +221,25 @@
           </tr>
         </tbody>
       </table>
-      <h3 style="margin-top:22px">Tổ hợp bổ sung: 3D & HD Map Offline</h3>
+      <h3 style="margin-top:22px">So sánh bổ sung: 3D & HD Map Offline và sau thay đổi server</h3>
+      <p class="note">Hai bài đo này dùng để đánh giá nhanh ngoài bảng 8 tổ hợp gốc. Server đã thay đổi cơ chế hiển thị số lượng tên đường, nên phần “sau thay đổi server” cần đọc như một phép kiểm tra tác động nhanh, không ghi đè số liệu gốc phía trên.</p>
       <table>
-        <thead><tr><th>Nhóm</th><th>Chỉ số</th><th>Giá trị đo được</th><th>Đánh giá</th></tr></thead>
+        <thead><tr><th>Nhóm</th><th>Chỉ số</th><th>3D & HD Map Offline</th><th>3D & HD Map sau thay đổi server</th><th>Đánh giá so với 3D & HD Map gốc</th></tr></thead>
         <tbody>
-          <tr><td>Điều kiện đo</td><td>Kết nối mạng</td><td class="warn">Active default network: none</td><td>Thiết bị không có mạng trong lúc đo. Logcat có <code>ERR_INTERNET_DISCONNECTED</code> và 6 overlong tile response, nên đây là phiên offline thực tế.</td></tr>
-          <tr><td>Trace</td><td>Duration</td><td>119.93s</td><td>Độ dài tương đương các tổ hợp trong bảng gốc.</td></tr>
-          <tr><td>CPU</td><td>App CPU trung bình</td><td class="bad">180.17% theo 1 lõi CPU</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (167.36%); app dùng khoảng 1.80 lõi CPU trung bình.</td></tr>
-          <tr><td>CPU</td><td>MapboxRenderThr</td><td class="bad">84.40% theo 1 lõi CPU</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (73.34%); render thread là điểm nóng rõ nhất.</td></tr>
-          <tr><td>CPU</td><td>Main/UI thread</td><td class="warn">47.69% theo 1 lõi CPU</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (42.14%), làm tăng rủi ro phản hồi UI chậm khi render/tile spike.</td></tr>
-          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="bad">723.70 / 756.16 MB</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (691.75 / 740.46 MB); offline không làm RAM giảm trong phiên này.</td></tr>
-          <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="good">12.95 / 12.95 MB</td><td>Thấp hơn mốc 3D & HD Map trong bảng gốc (17.52 / 17.56 MB), chưa phải vấn đề chính.</td></tr>
-          <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="bad">331.38 / 654.75 MB</td><td>Cao hơn nhiều so với mốc 3D & HD Map trong bảng gốc (268.99 / 270.30 MB). Max có spike lớn, cần kiểm tra cache/tile/texture khi offline.</td></tr>
-          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="bad">26.57 FPS</td><td>Thấp hơn mốc 3D & HD Map trong bảng gốc (28.56 FPS).</td></tr>
-          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="bad">30.49 / 40.95 / 51.80 ms</td><td>Xấu hơn mốc 3D & HD Map trong bảng gốc (23.78 / 32.08 / 36.82ms); P95/P99 vượt xa ngưỡng 33.3ms.</td></tr>
-          <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="bad">1051 / 3187 = 32.98%</td><td>Cao hơn rất nhiều so với mốc 3D & HD Map trong bảng gốc (3.74%); đây là chỉ số xấu nhất của phiên offline này.</td></tr>
-          <tr><td>Layer</td><td>Top cost layer</td><td><code>hd-road-polygon-street</code> - 2082.76ms total, 0.6535ms/frame</td><td>HD Road polygon vẫn đứng đầu và cao hơn mốc gốc của cùng layer (0.6177ms/frame).</td></tr>
-          <tr><td>Network</td><td>Tile request khi offline</td><td class="bad">1 <code>ERR_INTERNET_DISCONNECTED</code>, 6 overlong response</td><td>Mapbox vẫn có tile/network request khi không có default network; cần xử lý offline mode rõ ràng để giảm timeout/overlong và tránh kéo dài pipeline tile.</td></tr>
-          <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 48.02/48.90°C; GPU 51.60/53.10°C; Skin 44.53/44.70°C; status 3</td><td>Nhiệt cao hơn mốc gốc về skin (42.23/42.40°C), cần giảm quality khi offline kéo dài.</td></tr>
+          <tr><td>Điều kiện đo</td><td>Kết nối mạng</td><td class="warn">Active default network: none</td><td class="good">Online, Active default network: 106</td><td>Offline có lỗi disconnected/overlong; bản server_changed online không thấy lỗi network trong logcat.</td></tr>
+          <tr><td>Trace</td><td>Duration</td><td>119.93s</td><td>119.94s</td><td>Độ dài tương đương các bài đo trong bảng gốc.</td></tr>
+          <tr><td>CPU</td><td>App CPU trung bình</td><td class="bad">180.17% theo 1 lõi CPU</td><td class="bad">190.13% theo 1 lõi CPU</td><td>Cả hai đều cao hơn mốc gốc 167.36%; server_changed cao hơn rõ.</td></tr>
+          <tr><td>CPU</td><td>MapboxRenderThr</td><td class="bad">84.40% theo 1 lõi CPU</td><td class="bad">82.60% theo 1 lõi CPU</td><td>Cả hai đều cao hơn mốc gốc 73.34%, cho thấy render thread vẫn là điểm nóng chính.</td></tr>
+          <tr><td>CPU</td><td>Main/UI thread</td><td class="warn">47.69% theo 1 lõi CPU</td><td class="warn">47.71% theo 1 lõi CPU</td><td>Cả hai đều cao hơn mốc gốc 42.14%, có rủi ro ảnh hưởng phản hồi UI khi tile/render spike.</td></tr>
+          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="bad">723.70 / 756.16 MB</td><td class="warn">684.87 / 761.30 MB</td><td>Offline có RSS avg cao hơn mốc gốc; server_changed avg gần mốc gốc nhưng max cao hơn.</td></tr>
+          <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="good">12.95 / 12.95 MB</td><td class="good">19.00 / 19.04 MB</td><td>Swap chưa phải vấn đề chính trong hai bài đo bổ sung.</td></tr>
+          <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="bad">331.38 / 654.75 MB</td><td class="warn">282.63 / 285.77 MB</td><td>Offline có spike GPU memory rất lớn; server_changed cao hơn mốc gốc 268.99 / 270.30 MB nhưng ổn định hơn offline.</td></tr>
+          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="bad">26.57 FPS</td><td class="warn">28.16 FPS</td><td>Cả hai thấp hơn mốc gốc 28.56 FPS; offline xấu hơn.</td></tr>
+          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="bad">30.49 / 40.95 / 51.80 ms</td><td class="bad">28.06 / 43.57 / 53.84 ms</td><td>Cả hai xấu hơn mốc gốc 23.78 / 32.08 / 36.82ms; server_changed có P95/P99 rất cao dù FPS trung bình gần mốc gốc hơn.</td></tr>
+          <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="bad">1051 / 3187 = 32.98%</td><td class="bad">836 / 3377 = 24.76%</td><td>Cả hai cao hơn rất nhiều so với mốc gốc 3.74%; đây là điểm cần ưu tiên xử lý.</td></tr>
+          <tr><td>Layer</td><td>Top cost layer</td><td><code>hd-road-polygon-street</code> - 2082.76ms total, 0.6535ms/frame</td><td><code>hd-road-polygon-street</code> - 1970.28ms total, 0.6479ms/frame</td><td>HD Road polygon vẫn là layer đứng đầu trong cả hai bài đo, cao hơn mốc gốc của cùng layer 0.6177ms/frame.</td></tr>
+          <tr><td>Network</td><td>Tile/network behavior</td><td class="bad">1 <code>ERR_INTERNET_DISCONNECTED</code>, 6 overlong response</td><td class="good">Online, không thấy lỗi network trong logcat</td><td>Offline cần cơ chế chặn/giảm request online; server_changed cần kiểm tra số lượng tile/layer update sau thay đổi tên đường.</td></tr>
+          <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 48.02/48.90°C; GPU 51.60/53.10°C; Skin 44.53/44.70°C; status 3</td><td class="bad">AP 48.10/48.50°C; GPU 51.63/52.70°C; Skin 44.52/44.60°C; status 3</td><td>Nhiệt của hai bài đo đều cao hơn mốc gốc về skin, cần giảm quality khi kéo dài.</td></tr>
         </tbody>
       </table>
       <h3 style="margin-top:22px">Phân tích thời điểm CPU &gt;200% - 3D & HD Map Offline</h3>
@@ -264,26 +265,7 @@
         </tbody>
       </table>
       <p class="note" style="margin-top:16px">Cách đọc CPU &gt;200% cho offline: 202.71% tương đương khoảng 2.03 lõi CPU. Trên thiết bị 8 lõi, mức này tương đương khoảng 25.3% tổng CPU trong cửa sổ 5 giây, nhưng đáng chú ý vì đi cùng render max hơn 50ms và tỷ lệ frame &gt;33.3ms lên 32.98%.</p>
-      <h3 style="margin-top:22px">Đo lại nhanh: 3D & HD Map sau thay đổi server</h3>
-      <table>
-        <thead><tr><th>Nhóm</th><th>Chỉ số</th><th>Giá trị đo được</th><th>Đánh giá nhanh</th></tr></thead>
-        <tbody>
-          <tr><td>Điều kiện đo</td><td>Kết nối mạng</td><td class="good">Online, Active default network: 106</td><td>Wi-Fi đang kết nối; logcat không thấy lỗi network.</td></tr>
-          <tr><td>Trace</td><td>Duration</td><td>119.94s</td><td>Độ dài tương đương các bài đo trong bảng gốc.</td></tr>
-          <tr><td>CPU</td><td>App CPU trung bình</td><td class="bad">190.13% theo 1 lõi CPU</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (167.36%); app dùng khoảng 1.90 lõi CPU trung bình.</td></tr>
-          <tr><td>CPU</td><td>MapboxRenderThr</td><td class="bad">82.60% theo 1 lõi CPU</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (73.34%), render thread đang nặng hơn rõ.</td></tr>
-          <tr><td>CPU</td><td>Main/UI thread</td><td class="warn">47.71% theo 1 lõi CPU</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (42.14%), có nguy cơ ảnh hưởng thao tác UI khi render/tile spike.</td></tr>
-          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="warn">684.87 / 761.30 MB</td><td>Avg gần mốc gốc (691.75 MB), nhưng max cao hơn mốc gốc (740.46 MB) nên cần theo dõi memory spike.</td></tr>
-          <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="good">19.00 / 19.04 MB</td><td>Gần mốc 3D & HD Map trong bảng gốc (17.52 / 17.56 MB), chưa phải vấn đề chính trong lần đo này.</td></tr>
-          <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="warn">282.63 / 285.77 MB</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (268.99 / 270.30 MB), nhưng vẫn thấp hơn Vệ tinh & HD Map.</td></tr>
-          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="warn">28.16 FPS</td><td>Thấp hơn nhẹ so với mốc 3D & HD Map trong bảng gốc (28.56 FPS).</td></tr>
-          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="bad">28.06 / 43.57 / 53.84 ms</td><td>Xấu hơn mốc 3D & HD Map trong bảng gốc (23.78 / 32.08 / 36.82ms), đặc biệt P95/P99 vượt xa 33.3ms.</td></tr>
-          <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="bad">836 / 3377 = 24.76%</td><td>Cao hơn rất nhiều so với mốc 3D & HD Map trong bảng gốc (3.74%); đây là điểm xấu nhất của lần đo này.</td></tr>
-          <tr><td>Layer</td><td>Top cost layer</td><td><code>hd-road-polygon-street</code> - 1970.28ms total, 0.6479ms/frame</td><td>HD Road polygon vẫn đứng đầu và chi phí trung bình/frame cao hơn mốc gốc của cùng layer (0.6177ms/frame).</td></tr>
-          <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 48.10/48.50°C; GPU 51.63/52.70°C; Skin 44.52/44.60°C; status 3</td><td>Nhiệt vẫn cao; khi kết hợp với P95/P99 xấu có thể làm trải nghiệm giảm sau thời gian dùng dài.</td></tr>
-        </tbody>
-      </table>
-      <h3 style="margin-top:22px">Phân tích thời điểm CPU &gt;200%</h3>
+      <h3 style="margin-top:22px">Phân tích thời điểm CPU &gt;200% - 3D & HD Map sau thay đổi server</h3>
       <table>
         <thead><tr><th>Thời điểm</th><th>CPU app</th><th>Thành phần đóng góp chính</th><th>Dấu hiệu trong trace</th><th>Nhận định nguyên nhân</th><th>Việc cần kiểm tra</th></tr></thead>
         <tbody>
