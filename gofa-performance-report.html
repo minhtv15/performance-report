@@ -233,15 +233,15 @@
         <tbody>
           <tr><td>Điều kiện đo</td><td>Kết nối mạng</td><td class="good">Online, Active default network: 106</td><td>Wi-Fi đang kết nối; logcat không thấy lỗi network.</td></tr>
           <tr><td>Trace</td><td>Duration</td><td>119.94s</td><td>Độ dài tương đương các bài đo trước.</td></tr>
-          <tr><td>CPU</td><td>App CPU trung bình</td><td class="bad">178.17% theo 1 lõi CPU</td><td>Cao hơn lần đo nhanh trước; app dùng khoảng 1.78 lõi CPU trung bình.</td></tr>
+          <tr><td>CPU</td><td>App CPU trung bình</td><td class="bad">178.17% theo 1 lõi CPU</td><td>Cao hơn mốc 3D & HD Map trong bảng gốc (167.36%); app dùng khoảng 1.78 lõi CPU trung bình.</td></tr>
           <tr><td>CPU</td><td>MapboxRenderThr</td><td class="bad">80.05% theo 1 lõi CPU</td><td>Luồng render Mapbox vẫn là phần tốn CPU nhất.</td></tr>
           <tr><td>CPU</td><td>Main/UI thread</td><td class="warn">44.47% theo 1 lõi CPU</td><td>Main thread tăng, có thể góp phần làm thao tác kém mượt khi tile/render spike.</td></tr>
-          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="warn">575.65 / 729.98 MB</td><td>Avg thấp hơn lần đo nhanh trước nhưng max vẫn cao; cần theo dõi memory spike.</td></tr>
+          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="warn">575.65 / 729.98 MB</td><td>Avg thấp hơn mốc 3D & HD Map trong bảng gốc (691.75 MB), nhưng max vẫn gần 730 MB nên cần theo dõi memory spike.</td></tr>
           <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="warn">122.80 / 290.92 MB</td><td>Swap tăng rõ, cần theo dõi vì có thể ảnh hưởng độ mượt khi chạy lâu.</td></tr>
           <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="warn">283.24 / 286.44 MB</td><td>Gần mức 3D & HD Map, thấp hơn Vệ tinh & HD Map.</td></tr>
-          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="warn">29.25 FPS</td><td>FPS trung bình giảm so với lần đo nhanh trước.</td></tr>
-          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="bad">26.95 / 43.13 / 57.55 ms</td><td>P95/P99 xấu, vượt xa mốc 33.3ms nên có nguy cơ giật rõ.</td></tr>
-          <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="bad">427 / 3508 = 12.17%</td><td>Jank cao, gần nhóm xấu nhất trong báo cáo.</td></tr>
+          <tr><td>FPS</td><td>Mapbox render FPS</td><td class="warn">29.25 FPS</td><td>FPS trung bình nhỉnh hơn mốc 3D & HD Map trong bảng gốc (28.56 FPS), nhưng chưa đủ để kết luận mượt vì P95/P99 xấu.</td></tr>
+          <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="bad">26.95 / 43.13 / 57.55 ms</td><td>Xấu hơn mốc 3D & HD Map trong bảng gốc (23.78 / 32.08 / 36.82ms), đặc biệt P99 tăng mạnh nên có nguy cơ giật rõ.</td></tr>
+          <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="bad">427 / 3508 = 12.17%</td><td>Cao hơn nhiều so với mốc 3D & HD Map trong bảng gốc (3.74%), nên đây là điểm cần ưu tiên kiểm tra.</td></tr>
           <tr><td>Layer</td><td>Top cost layer</td><td><code>hd-road-polygon-street</code> - 1898.43ms total, 0.6015ms/frame</td><td>HD Road polygon vẫn là nhóm render nặng nhất dù server đã đổi cấu hình.</td></tr>
           <tr><td>Thermal</td><td>AP / GPU / Skin avg-max</td><td class="bad">AP 48.42/48.50°C; GPU 52.09/53.10°C; Skin 44.70/44.70°C; status 3</td><td>Nhiệt cao, có thể làm hệ thống giảm hiệu năng nếu dùng lâu hơn.</td></tr>
         </tbody>
