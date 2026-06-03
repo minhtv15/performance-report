@@ -216,9 +216,9 @@
           <tr><td>CPU</td><td>App CPU trung bình</td><td class="bad">164.61% theo 1 lõi CPU</td><td>Mất mạng không làm render workload giảm nhiều; app vẫn dùng khoảng 1.65 lõi CPU trung bình.</td></tr>
           <tr><td>CPU</td><td>MapboxRenderThr</td><td class="bad">81.46% theo 1 lõi CPU</td><td>Render thread vẫn là điểm nóng chính.</td></tr>
           <tr><td>CPU</td><td>Main/UI thread</td><td class="warn">40.94% theo 1 lõi CPU</td><td>Vẫn đáng chú ý, nhưng thấp hơn MapboxRenderThr.</td></tr>
-          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="good">567.61 / 608.26 MB</td><td>Thấp hơn lần offline trước, cho thấy cache/server state hiện tại không làm RSS tăng mạnh.</td></tr>
+          <tr><td>Memory</td><td>RAM app đang dùng (<code>mem.rss</code>) avg / max</td><td class="good">567.61 / 608.26 MB</td><td>Thấp hơn mốc 3D & HD Map trong bảng gốc (691.75 / 740.46 MB), cho thấy trạng thái offline hiện tại không làm RSS tăng mạnh.</td></tr>
           <tr><td>Memory</td><td>RAM ảo / swap (<code>mem.swap</code>) avg / max</td><td class="warn">134.84 / 135.13 MB</td><td>Swap cao và ổn định; cần theo dõi nếu dùng offline lâu hoặc đổi nhiều vùng bản đồ.</td></tr>
-          <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="warn">257.04 / 260.11 MB</td><td>Thấp hơn lần offline trước và gần mức 3D & HD Map có internet.</td></tr>
+          <tr><td>GPU</td><td>Bộ nhớ GPU avg / max</td><td class="warn">257.04 / 260.11 MB</td><td>Thấp hơn mốc 3D & HD Map trong bảng gốc (268.99 / 270.30 MB), nhưng vẫn thuộc nhóm cần theo dõi khi bật HD Map.</td></tr>
           <tr><td>FPS</td><td>Mapbox render FPS</td><td class="good">31.18 FPS</td><td>FPS trung bình khá, nhưng vẫn cần đọc kèm P99 và frame &gt;33.3ms.</td></tr>
           <tr><td>FPS</td><td>Render avg / P95 / P99</td><td class="bad">25.18 / 33.03 / 42.49 ms</td><td>P99 vẫn vượt 33.3ms, có spike khi render/cache tile diễn ra.</td></tr>
           <tr><td>FPS</td><td>Frames &gt;33.3ms</td><td class="bad">179 / 3740 = 4.79%</td><td>Jank vẫn cao hơn mức mong muốn dù không có network error mới.</td></tr>
