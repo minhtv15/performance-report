@@ -18,16 +18,16 @@ gofa-performance-report.html
 
 ## Publish bang GitHub Pages
 
-Repo nay dung cho GitHub Pages ca nhan:
+Repo nay dung cho GitHub Pages project:
 
 ```text
-https://minhtv15.github.io/
+https://minhtv15.github.io/performance-report/
 ```
 
-Ten repo tren GitHub can la:
+Ten repo tren GitHub:
 
 ```text
-minhtv15.github.io
+performance-report
 ```
 
 Sau khi push repo len GitHub:
@@ -41,5 +41,5 @@ Sau khi push repo len GitHub:
 URL public:
 
 ```text
-https://minhtv15.github.io/
+https://minhtv15.github.io/performance-report/
 ```
