@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Báo Cáo Đánh Giá Hiệu Năng — com.lumi.wallpad (SM10P)</title>
+  <style>
+    :root {
+      --background: #f1f5f9;
+      --foreground: #0f172a;
+      --card: #ffffff;
+      --card-95: rgba(255, 255, 255, 0.96);
+      --border: #cbd5e1;
+      --muted-foreground: #334155;
+      --secondary-50: #f8fafc;
+      --secondary-30: #eff6ff;
+      --code-bg: #f1f5f9;
+      --c-blue: #1d4ed8;
+      --c-emerald: #047857;
+      --c-amber: #b45309;
+      --c-red: #b91c1c;
+      --bg-emerald-soft: rgba(16, 185, 129, 0.12);
+      --bd-emerald-soft: rgba(16, 185, 129, 0.35);
+      --bg-amber-soft: rgba(245, 158, 11, 0.14);
+      --bd-amber-soft: rgba(245, 158, 11, 0.4);
+      --bg-red-soft: rgba(239, 68, 68, 0.12);
+      --bd-red-soft: rgba(239, 68, 68, 0.35);
+      --bg-blue-soft: rgba(59, 130, 246, 0.12);
+      --bd-blue-soft: rgba(59, 130, 246, 0.35);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #0b0f19;
+        --foreground: #f8fafc;
+        --card: #111827;
+        --card-95: rgba(17, 24, 39, 0.96);
+        --border: #1e293b;
+        --muted-foreground: #94a3b8;
+        --secondary-50: rgba(30, 41, 59, 0.7);
+        --secondary-30: rgba(30, 58, 138, 0.28);
+        --code-bg: rgba(255, 255, 255, 0.08);
+        --c-blue: #60a5fa;
+        --c-emerald: #34d399;
+        --c-amber: #fbbf24;
+        --c-red: #f87171;
+        --bg-emerald-soft: rgba(16, 185, 129, 0.15);
+        --bd-emerald-soft: rgba(16, 185, 129, 0.3);
+        --bg-amber-soft: rgba(245, 158, 11, 0.15);
+        --bd-amber-soft: rgba(245, 158, 11, 0.3);
+        --bg-red-soft: rgba(239, 68, 68, 0.15);
+        --bd-red-soft: rgba(239, 68, 68, 0.3);
+        --bg-blue-soft: rgba(59, 130, 246, 0.15);
+        --bd-blue-soft: rgba(59, 130, 246, 0.3);
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html.scroll-smooth { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, p { margin: 0; }
+    code {
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.88em;
+      padding: 0.12rem 0.35rem;
+      border-radius: 0.25rem;
+      background-color: var(--code-bg);
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { vertical-align: top; }
+
+    /* Layout & Spacing */
+    .max-w-6xl { max-width: 76rem; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .w-full { width: 100%; }
+    .w-20 { width: 5rem; }
+    .w-24 { width: 6rem; }
+    .w-44 { width: 11rem; }
+    .w-48 { width: 12rem; }
+    .w-56 { width: 14rem; }
+    .w-64 { width: 16rem; }
+    .shrink-0 { flex-shrink: 0; }
+    .overflow-x-auto { overflow-x: auto; }
+
+    .sticky { position: sticky; }
+    .top-0 { top: 0; }
+    .z-30 { z-index: 30; }
+    .backdrop-blur { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-2\.5 { gap: 0.625rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+
+    .grid { display: grid; }
+    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+
+    .p-3 { padding: 0.75rem; }
+    .p-4 { padding: 1rem; }
+    .p-6 { padding: 1.5rem; }
+    .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+    .pb-4 { padding-bottom: 1rem; }
+    .pt-2 { padding-top: 0.5rem; }
+    .mt-0\.5 { margin-top: 0.125rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+
+    .space-y-1\.5 > * + * { margin-top: 0.375rem; }
+    .space-y-2 > * + * { margin-top: 0.5rem; }
+    .space-y-3 > * + * { margin-top: 0.75rem; }
+    .space-y-5 > * + * { margin-top: 1.25rem; }
+    .space-y-6 > * + * { margin-top: 1.5rem; }
+    .space-y-8 > * + * { margin-top: 2rem; }
+
+    /* Borders & Radius */
+    .border { border: 1px solid var(--border); }
+    .border-b { border-bottom: 1px solid var(--border); }
+    .border-t { border-top: 1px solid var(--border); }
+    .border-\[var\(--border\)\] { border-color: var(--border); }
+    .divide-y > * + * { border-top: 1px solid var(--border); }
+    .rounded { border-radius: 0.25rem; }
+    .rounded-md { border-radius: 0.375rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+
+    /* Backgrounds */
+    .bg-\[var\(--background\)\] { background-color: var(--background); }
+    .bg-\[var\(--card\)\] { background-color: var(--card); }
+    .bg-\[var\(--card\)\]\/95 { background-color: var(--card-95); }
+    .bg-\[var\(--secondary\)\]\/50 { background-color: var(--secondary-50); }
+    .bg-\[var\(--secondary\)\]\/30 { background-color: var(--secondary-30); }
+    .bg-blue-600 { background-color: #2563eb; }
+    .bg-blue-500 { background-color: #3b82f6; }
+    .bg-amber-500 { background-color: #f59e0b; }
+    .bg-red-500 { background-color: #ef4444; }
+    .bg-emerald-500\/15 { background-color: var(--bg-emerald-soft); }
+    .bg-amber-500\/15 { background-color: var(--bg-amber-soft); }
+    .bg-red-500\/15 { background-color: var(--bg-red-soft); }
+    .bg-blue-500\/15 { background-color: var(--bg-blue-soft); }
+    .border-emerald-500\/30 { border-color: var(--bd-emerald-soft); }
+    .border-amber-500\/30 { border-color: var(--bd-amber-soft); }
+    .border-red-500\/30 { border-color: var(--bd-red-soft); }
+    .border-blue-500\/30 { border-color: var(--bd-blue-soft); }
+
+    /* Typography & Colors */
+    .text-xs { font-size: 0.75rem; line-height: 1.15rem; }
+    .text-sm { font-size: 0.875rem; line-height: 1.35rem; }
+    .text-lg { font-size: 1.125rem; line-height: 1.6rem; }
+    .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .font-medium { font-weight: 500; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+    .font-mono { font-family: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+    .uppercase { text-transform: uppercase; }
+    .tracking-wider { letter-spacing: 0.05em; }
+    .text-left { text-align: left; }
+    .text-center { text-align: center; }
+    .align-top { vertical-align: top; }
+
+    .text-\[var\(--foreground\)\] { color: var(--foreground); }
+    .text-\[var\(--muted-foreground\)\] { color: var(--muted-foreground); }
+    .text-white { color: #ffffff; }
+    .text-black { color: #000000; }
+    .text-blue-400, .text-blue-500 { color: var(--c-blue); }
+    .text-emerald-500 { color: var(--c-emerald); }
+    .text-amber-400, .text-amber-500 { color: var(--c-amber); }
+    .text-red-400, .text-red-500 { color: var(--c-red); }
+
+    /* Responsive Breakpoints */
+    @media (min-width: 640px) {
+      .sm\:flex-row { flex-direction: row; }
+      .sm\:items-center { align-items: center; }
+      .sm\:justify-between { justify-content: space-between; }
+      .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sm\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .sm\:text-sm { font-size: 0.875rem; line-height: 1.35rem; }
+      .sm\:text-lg { font-size: 1.125rem; line-height: 1.6rem; }
+      .sm\:text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    }
+    @media (min-width: 1024px) {
+      .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased leading-relaxed">
+
+  <!-- STICKY HEADER -->
+  <header class="sticky top-0 z-30 bg-[var(--card)]/95 backdrop-blur border-b border-[var(--border)] px-6 py-4">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-600 text-white">BÁO CÁO KIỂM ĐỊNH HIỆU NĂNG</span>
+          <span class="text-xs text-[var(--muted-foreground)]">Ngày đo: 14/10/2026 • Môi trường vận hành thực tế</span>
+        </div>
+        <h1 class="text-lg sm:text-xl font-bold mt-1">
+          Ứng dụng Lumi Wallpad (<code class="text-blue-500">com.lumi.wallpad</code> v1.0.12) trên Thiết bị Cố định SM10P
+        </h1>
+      </div>
+      <div class="flex items-center gap-2 shrink-0 text-xs font-semibold">
+        <span class="px-3 py-1 rounded-md bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">5 ĐẠT (PASS)</span>
+        <span class="px-3 py-1 rounded-md bg-amber-500/15 text-amber-500 border border-amber-500/30">2 CẢNH BÁO (WARN)</span>
+        <span class="px-3 py-1 rounded-md bg-red-500/15 text-red-500 border border-red-500/30">24 CHƯA ĐẠT (FAIL)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- SINGLE-COLUMN DOCUMENT CONTAINER -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+
+    <!-- 1. TỔNG QUAN & CẤU HÌNH PHẦN CỨNG CHUẨN -->
+    <section class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 space-y-6">
+      <div class="border-b border-[var(--border)] pb-4">
+        <h2 class="text-lg font-bold">1. Tóm Tắt Kết Quả &amp; Giới Hạn Phần Cứng Tham Chiếu (SM10P)</h2>
+        <p class="text-sm text-[var(--muted-foreground)] mt-1">
+          Đánh giá tập trung vào độ mượt hiển thị, thời gian màn hình phản hồi trực tiếp theo thao tác chạm/vuốt của người dùng và mức tiêu thụ tài nguyên hệ thống khi vận hành trên thiết bị <code>SM10P (ADPCP524080961)</code>.
+        </p>
+      </div>
+
+      <!-- 4 CORE KPI CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="p-4 rounded-lg bg-[var(--background)] border border-[var(--border)]">
+          <div class="flex justify-between items-center text-xs text-[var(--muted-foreground)]">
+            <span>Tỷ lệ khung hình trễ (Jank)</span>
+            <span class="font-bold text-red-500">FAIL</span>
+          </div>
+          <div class="text-2xl font-bold text-red-500 mt-1">74.57%</div>
+          <div class="text-xs text-[var(--muted-foreground)] mt-1">Chuẩn: &lt; 5% (&le; 17.54ms/frame)</div>
+          <p class="text-xs mt-2 pt-2 border-t border-[var(--border)]">P50: 26ms | P90: 93ms | P99: 550ms. Gây khựng hình rõ rệt khi vuốt và cuộn.</p>
+        </div>
+
+        <div class="p-4 rounded-lg bg-[var(--background)] border border-[var(--border)]">
+          <div class="flex justify-between items-center text-xs text-[var(--muted-foreground)]">
+            <span>Phản hồi chạm &amp; Mở ứng dụng</span>
+            <span class="font-bold text-red-500">FAIL</span>
+          </div>
+          <div class="text-2xl font-bold text-amber-500 mt-1">49ms – 109ms</div>
+          <div class="text-xs text-[var(--muted-foreground)] mt-1">Chuẩn chạm: &lt; 50ms | Mở app: &lt; 2.0s</div>
+          <p class="text-xs mt-2 pt-2 border-t border-[var(--border)]">Đỉnh trễ chạm giao diện lên tới 567ms; mở mới ứng dụng (Cold Start) mất 10.67s.</p>
+        </div>
+
+        <div class="p-4 rounded-lg bg-[var(--background)] border border-[var(--border)]">
+          <div class="flex justify-between items-center text-xs text-[var(--muted-foreground)]">
+            <span>Bộ nhớ RAM &amp; Rò rỉ màn hình</span>
+            <span class="font-bold text-red-500">CRITICAL</span>
+          </div>
+          <div class="text-2xl font-bold text-red-500 mt-1">503.4 MB PSS</div>
+          <div class="text-xs text-[var(--muted-foreground)] mt-1">Chuẩn: &lt; 180 MB (Trên RAM 2GB)</div>
+          <p class="text-xs mt-2 pt-2 border-t border-[var(--border)]">Tồn đọng 30 Activities trong bộ nhớ (+49.4MB/vòng), gây tràn RAM sau 15–25 chu kỳ.</p>
+        </div>
+
+        <div class="p-4 rounded-lg bg-[var(--background)] border border-[var(--border)]">
+          <div class="flex justify-between items-center text-xs text-[var(--muted-foreground)]">
+            <span>Nhiệt độ vận hành âm tường</span>
+            <span class="font-bold text-emerald-500">PASS</span>
+          </div>
+          <div class="text-2xl font-bold text-emerald-500 mt-1">41.25 °C</div>
+          <div class="text-xs text-[var(--muted-foreground)] mt-1">Chuẩn: &lt; 65°C (Hạ xung ở 75°C)</div>
+          <p class="text-xs mt-2 pt-2 border-t border-[var(--border)]">Đỉnh nhiệt 41.88°C, không bị giảm xung nhịp (0% Throttling) khi chạy liên tục.</p>
+        </div>
+      </div>
+
+      <!-- 5 VẤN ĐỀ CHÍNH GÂY TRẢI NGHIỆM CHƯA MƯỢT ĐẾN NGƯỜI DÙNG -->
+      <div class="space-y-3 pt-2">
+        <div>
+          <h3 class="text-sm sm:text-lg font-bold text-red-500">1.1. Các Vấn Đề Chính Gây Trải Nghiệm Chưa Mượt &amp; Hướng Xử Lý Ngắn Gọn</h3>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm border border-[var(--border)]">
+            <thead>
+              <tr class="border-b border-[var(--border)] bg-[var(--secondary)]/50 text-[var(--muted-foreground)]">
+                <th class="p-3 w-64">Biểu hiện Chưa Mượt</th>
+                <th class="p-3">Nguyên Nhân Cốt Lõi (Ngắn gọn)</th>
+                <th class="p-3 w-64">Giải Pháp Trọng Tâm</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[var(--border)] align-top">
+              <tr>
+                <td class="p-3">
+                  <div class="font-bold text-red-500">1. Vuốt &amp; cuộn bị giật</div>
+                  <div class="text-xs text-[var(--muted-foreground)] font-mono mt-0.5">74.57% Jank | 43–52 FPS / 57Hz</div>
+                </td>
+                <td class="p-3 text-[var(--muted-foreground)]">
+                  Cây giao diện quá sâu (<strong>18 cấp</strong>, dựng cùng lúc <strong>11 Fragments</strong>) và quá tải GPU (vẽ đè <strong>Overdraw 14.8x</strong>, <strong>378 lệnh <code>saveLayer</code></strong>, <strong>13.4% chậm nạp Bitmap</strong>, vẽ lại icon/màu liên tục khi cuộn).
+                </td>
+                <td class="p-3 text-emerald-500 font-medium text-xs">
+                  Hạ cây View &le; 10 cấp, <code>offscreenPageLimit=1</code>; bỏ nền trùng &amp; <code>saveLayer</code>; bật <code>Hardware Bitmap</code>, cache icon Vector/Palette.
+                </td>
+              </tr>
+              <tr>
+                <td class="p-3">
+                  <div class="font-bold text-red-500">2. Bấm nút / chuyển tab bị trễ</div>
+                  <div class="text-xs text-[var(--muted-foreground)] font-mono mt-0.5">109ms – 567ms (Chuẩn &lt; 50ms)</div>
+                </td>
+                <td class="p-3 text-[var(--muted-foreground)]">
+                  Gọi <code>notifyDataSetChanged()</code> vẽ lại cả danh sách, đọc/ghi đồng bộ file <code>wallpad_prefs.xml</code> (<strong>1.99 MB</strong>) trên luồng UI (<strong>89 lần I/O wait</strong>) và gọi IPC tắt/bật <code>ScreenSaverService</code> mỗi lần chạm.
+                </td>
+                <td class="p-3 text-emerald-500 font-medium text-xs">
+                  Dùng <code>DiffUtil payload</code> (chỉ vẽ lại nút vừa bấm); chuyển dữ liệu sang <code>Room SQLite</code> chạy ngầm; dùng <code>Handler</code> thay IPC khi chạm.
+                </td>
+              </tr>
+              <tr>
+                <td class="p-3">
+                  <div class="font-bold text-red-500">3. Thỉnh thoảng "đứng hình" 0.5s – 2s</div>
+                  <div class="text-xs text-[var(--muted-foreground)] font-mono mt-0.5">10 Frozen Frames | 15 đợt khóa UI</div>
+                </td>
+                <td class="p-3 text-[var(--muted-foreground)]">
+                  Luồng UI bị khóa bởi luồng mạng/video (<strong>1,523 lần lock</strong>), dừng chờ dọn rác bộ nhớ (<strong>50 đợt GC / 511.5ms</strong>) và trễ nhịp quét màn hình (<strong>24.8% Missed VSync</strong>).
+                </td>
+                <td class="p-3 text-emerald-500 font-medium text-xs">
+                  Đọc dữ liệu không khóa qua <code>StateFlow</code>; gom nhịp cập nhật UI (<code>sample 32ms</code>); đưa <code>MQTT/WebSocket</code> về 1 Singleton.
+                </td>
+              </tr>
+              <tr>
+                <td class="p-3">
+                  <div class="font-bold text-amber-500">4. Mở app lâu &amp; chuyển trang trễ</div>
+                  <div class="text-xs text-[var(--muted-foreground)] font-mono mt-0.5">Mở: 10.67s | Chuyển: 0.76s – 1.82s</div>
+                </td>
+                <td class="p-3 text-[var(--muted-foreground)]">
+                  Dồn việc đọc file XML <strong>1.99 MB</strong>, nạp thư viện JNI và dựng <strong>11 Fragments</strong> lên luồng chính lúc mở trang, kèm <strong>325 lần biên dịch nóng (<code>JIT</code>)</strong> khi đang thao tác.
+                </td>
+                <td class="p-3 text-emerald-500 font-medium text-xs">
+                  Khởi tạo ngầm (Lazy Init), chỉ dựng trước 1 Fragment và tích hợp <strong>Baseline Profiles</strong> (biên dịch AOT trước).
+                </td>
+              </tr>
+              <tr>
+                <td class="p-3">
+                  <div class="font-bold text-red-500">5. Dùng lâu nặng máy &amp; tự văng app</div>
+                  <div class="text-xs text-[var(--muted-foreground)] font-mono mt-0.5">503.4 MB PSS | 30 Activities</div>
+                </td>
+                <td class="p-3 text-[var(--muted-foreground)]">
+                  Không đóng màn hình cũ làm tồn đọng <strong>30 Activities</strong> (<strong>+49.4 MB/vòng</strong>), ép nén <strong>344 MB vào ZRAM Swap</strong> gây quá tải CPU và tràn RAM (OOM) sau 15–25 vòng.
+                </td>
+                <td class="p-3 text-emerald-500 font-medium text-xs">
+                  Đặt <code>launchMode="singleTask"</code>, gọi <code>finish()</code> khi rời trang con và giải phóng cache ảnh trong <code>onTrimMemory()</code>.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- HARDWARE LIMITS SUMMARY TABLE -->
+      <div class="space-y-2 pt-2">
+        <h3 class="text-sm sm:text-lg font-bold">1.2. Giới Hạn Phần Cứng Vật Lý &amp; Ngưỡng Tiêu Chuẩn Áp Dụng (SM10P)</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="border-b border-[var(--border)] bg-[var(--secondary)]/50 text-[var(--muted-foreground)]">
+              <th class="p-3">Thông số Phần cứng SM10P</th>
+              <th class="p-3">Giới hạn Vật lý trong Kernel</th>
+              <th class="p-3">Ngưỡng Tiêu chuẩn Áp dụng</th>
+              <th class="p-3">Cơ sở Tiêu chuẩn Tham chiếu</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border)]">
+            <tr>
+              <td class="p-3 font-semibold">Màn hình &amp; Chu kỳ VSync</td>
+              <td class="p-3 font-mono">1920×1200 @ 57.00 Hz (17.54 ms/frame)</td>
+              <td class="p-3">Frame Time &le; 17.54 ms (Tối đa 57.0 FPS)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Google Android Vitals / Android CDD Mục 8</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold">Bộ nhớ RAM &amp; VM Heap</td>
+              <td class="p-3 font-mono">RAM: 1,996 MB (+ZRAM 998 MB) | Heap: 192M / 512M</td>
+              <td class="p-3">Total PSS &lt; 180 MB | Activities sống &le; 2</td>
+              <td class="p-3 text-[var(--muted-foreground)]">ISO/IEC 25010 / Android Low-RAM Guidelines</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold">Vi xử lý CPU / GPU / VPU</td>
+              <td class="p-3 font-mono">4× Cortex-A55 @ 1.42GHz (400%) | Mali-G52 @ 800MHz</td>
+              <td class="p-3">CPU nghỉ &le; 15%, cuộn &lt; 150% | Overdraw &le; 2.5x</td>
+              <td class="p-3 text-[var(--muted-foreground)]">ISO/IEC 25010 Resource Utilization</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold">Nhiệt độ &amp; Lưu trữ eMMC</td>
+              <td class="p-3 font-mono">Hạ xung: 75°C / 85°C | ROM /data: 24GB | Max 32,768 FDs</td>
+              <td class="p-3">Nhiệt độ &lt; 65°C | Ghi Flash &lt; 50 MB/ngày | XML &lt; 100KB</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Linux Kernel Thermal DTS / eMMC Wear Standard</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. NHÓM 1: ĐỘ MƯỢT GIAO DIỆN (UI SMOOTHNESS) -->
+    <section class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[var(--border)] pb-4">
+        <div>
+          <h2 class="text-lg font-bold">2. Đánh Giá Độ Mượt Hiển Thị Giao Diện (Nhóm 1: Tiêu chí 1.1 – 1.7, A1, A2)</h2>
+          <p class="text-sm text-[var(--muted-foreground)] mt-0.5">
+            Đo lường độ trôi chảy của hình ảnh khi vuốt ngang <code>MainActivity</code> và cuộn danh sách thiết bị trên <code>SmartHomeActivity</code>.
+          </p>
+        </div>
+        <span class="px-3 py-1 rounded-md text-xs font-bold bg-red-500/15 text-red-500 border border-red-500/30 shrink-0">8 / 9 Tiêu chí FAIL</span>
+      </div>
+
+      <div class="p-4 rounded-lg bg-[var(--background)] border border-[var(--border)] text-sm space-y-1.5">
+        <div class="font-semibold">Nhận định trọng tâm:</div>
+        <p class="text-[var(--muted-foreground)]">
+          Toàn phiên có <strong>74.57% số khung hình vượt quá giới hạn VSync 17.54ms</strong> của màn hình 57Hz, gây hiện tượng khựng giật khi vuốt và 10 lần đứng hình ngắn (0.7s – 1.99s). Nguyên nhân tại <code>MainActivity</code> là do cây giao diện sâu tới <strong>18 cấp</strong> (chứa 218 LinearLayout và 5 RecyclerView lồng trong ViewPager2) làm nghẽn luồng UI (<code>Layout P90 = 14.36ms</code>). Nguyên nhân tại <code>SmartHomeActivity</code> là do nghẽn GPU Mali-G52 (<code>Issue GPU = 15.29ms</code>) bởi tỷ lệ vẽ đè cao (<strong>Overdraw 6.65x – 14.8x</strong>), gọi <strong>378 lần <code>alpha saveLayer</code></strong> và vẽ lại 56 lần các icon <code>VectorDrawable</code> khi cuộn.
+        </p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="border-b border-[var(--border)] bg-[var(--secondary)]/50 text-[var(--muted-foreground)]">
+              <th class="p-3 w-20">Mã</th>
+              <th class="p-3 w-64">Tiêu chí Đánh giá</th>
+              <th class="p-3 w-44">Ngưỡng Tiêu chuẩn</th>
+              <th class="p-3 w-64">Thông số Đo Hiện tại</th>
+              <th class="p-3">Phân tích Nguyên nhân &amp; Biểu hiện</th>
+              <th class="p-3 w-20 text-center">Kết quả</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border)]">
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">1.1</td>
+              <td class="p-3 font-semibold">Thời gian vẽ khung hình (Frame Time P50/P90/P99)</td>
+              <td class="p-3 text-emerald-500">P50 &le; 12ms<br/>P90 &le; 17.54ms</td>
+              <td class="p-3 font-mono">P50: 26ms (Main 36ms, Home 19ms)<br/>P90: 93ms | P95: 150ms | P99: 550ms</td>
+              <td class="p-3 text-[var(--muted-foreground)]">P90 gấp 5.3 lần giới hạn VSync phần cứng (17.54ms), gây khựng hình rõ rệt ở các nhịp vuốt.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">1.2</td>
+              <td class="p-3 font-semibold">Tỷ lệ khung hình giật (Jank &amp; Stutter Rate)</td>
+              <td class="p-3 text-emerald-500">&lt; 5.0% (Tốt)<br/>&gt; 50% (Vitals Xấu)</td>
+              <td class="p-3 font-mono">Phiên: 74.57% (1,117/1,498)<br/>Main: 66.21% | SmartHome: 62.30%</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Cứ 4 khung hình hiển thị có 3 khung hình bị trễ nhịp (vượt ngưỡng phạt Android Vitals +24.5%).</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">1.3</td>
+              <td class="p-3 font-semibold">Khung hình đóng băng (Frozen Frames &gt; 700ms)</td>
+              <td class="p-3 text-emerald-500">Frozen: 0%<br/>Missed VSync &lt; 1%</td>
+              <td class="p-3 font-mono">Frozen: 0.67% (10 frames, Max 1.99s)<br/>Missed VSync: 15.69%</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Xuất hiện 10 lần giao diện đứng hình từ 0.7s đến gần 2s khi nạp dữ liệu và chuyển trang.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">1.4</td>
+              <td class="p-3 font-semibold">Hiệu năng dàn trang (Measure / Layout / Draw)</td>
+              <td class="p-3 text-emerald-500">Layout P90 &lt; 4.0ms<br/>Views &lt; 1,500</td>
+              <td class="p-3 font-mono">Layout P90: 17.24ms (Max 1,277ms)<br/>Views toàn tiến trình: 10,695 – 11,970</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Tổng số View gấp ~8 lần khuyến nghị do không giải phóng các màn hình cũ, làm đỉnh Layout mất 1.28s.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">1.4a (A1)</td>
+              <td class="p-3 font-semibold">Độ sâu cây View &amp; Vẽ đè GPU (Overdraw)</td>
+              <td class="p-3 text-emerald-500">Depth &le; 10 cấp<br/>Overdraw &le; 2.5x</td>
+              <td class="p-3 font-mono">Main: 18 cấp, Overdraw 14.8x<br/>Home: 15 cấp, Overdraw 6.65x | 378 saveLayer</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Vẽ đè 14.8 lần trên mỗi điểm ảnh và tạo 378 bộ đệm GPU offscreen do lạm dụng hiệu ứng trong suốt (alpha).</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">1.5</td>
+              <td class="p-3 font-semibold">Độ mượt cuộn danh sách (RecyclerView Scroll)</td>
+              <td class="p-3 text-emerald-500">P50 &le; 14ms<br/>P90 &le; 17.54ms</td>
+              <td class="p-3 font-mono">P50: 19ms | P90: 27ms | P99: 46ms<br/>CPU Layout: 0.28ms | GPU Issue: 10.75ms</td>
+              <td class="p-3 text-[var(--muted-foreground)]">CPU xử lý nhanh nhưng bị nghẽn ở bước gửi lệnh vẽ xuống GPU Mali-G52 (P90 = 15.29ms).</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">1.5a (A2)</td>
+              <td class="p-3 font-semibold">Lồng ghép RecyclerView &amp; Vẽ lại Vector/Texture</td>
+              <td class="p-3 text-emerald-500">Không lồng &gt; 2 RV<br/>0 Vector repaint</td>
+              <td class="p-3 font-mono">Main: 5 RV | Home: 3 RV<br/>56 Vector repaint | 62 texture_upload</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Vẽ lại các icon VectorDrawable và tính lại bảng màu (55 lần computePalette) liên tục trong lúc cuộn.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">1.6</td>
+              <td class="p-3 font-semibold">Độ đều nhịp khung hình (Frame Pacing Jitter)</td>
+              <td class="p-3 text-emerald-500">Interval &approx; 17.54ms<br/>Jitter &sigma; &lt; 3.0ms</td>
+              <td class="p-3 font-mono">Main: &sigma; = 9.56ms, Overrun P90 = +48.9ms<br/>Home: &sigma; = 3.37ms, Overrun P90 = +18.4ms</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Nhịp xuất hình trên MainActivity dao động mạnh (&sigma; = 9.56ms), gây cảm giác hình trôi không đều tay.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">1.7</td>
+              <td class="p-3 font-semibold">Đáp ứng tần số quét phần cứng (57.0Hz VSync)</td>
+              <td class="p-3 text-emerald-500">&ge; 90% số frame đạt &le; 17.54ms</td>
+              <td class="p-3 font-mono">Phiên: 25.43% đạt chuẩn<br/>Main: 33.79% (~43 FPS) | Home: 37.70% (~52 FPS)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Chỉ đạt ~1/3 số lượng khung hình đúng hạn so với trần vật lý 57.0 FPS của màn hình SM10P.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. NHÓM 2: ĐỘ NHẠY TƯƠNG TÁC MÀN HÌNH (INTERACTION RESPONSIVENESS) -->
+    <section class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[var(--border)] pb-4">
+        <div>
+          <h2 class="text-lg font-bold">3. Đánh Giá Độ Nhạy Thao Tác Màn Hình &amp; Thời Gian Mở Trang (Nhóm 2: Tiêu chí 2.1 – 2.7, A3, A4)</h2>
+          <p class="text-sm text-[var(--muted-foreground)] mt-0.5">
+            Đo lường thời gian từ lúc ngón tay chạm mặt kính cảm ứng đến khi màn hình hoàn tất vẽ khung hình phản hồi giao diện và chuyển trang.
+          </p>
+        </div>
+        <span class="px-3 py-1 rounded-md text-xs font-bold bg-red-500/15 text-red-500 border border-red-500/30 shrink-0">7 FAIL • 2 WARN</span>
+      </div>
+
+      <div class="p-4 rounded-lg bg-[var(--background)] border border-[var(--border)] text-sm space-y-1.5">
+        <div class="font-semibold">Nhận định trọng tâm:</div>
+        <p class="text-[var(--muted-foreground)]">
+          Thao tác cuộn trên <code>SmartHomeActivity</code> có độ nhạy tốt (<code>43.61ms &lt; 50ms</code>) và chạm menu chính phản hồi nhanh (<code>49.08ms</code>). Tuy nhiên, khi <strong>bấm nút hoặc chuyển tab phòng trên <code>SmartHomeActivity</code>, bản thân giao diện mất trung bình 109.07ms (đỉnh 567.48ms) mới vẽ xong khung hình phản hồi</strong> do phải nạp lại danh sách thiết bị và đọc/ghi đồng bộ file <code>wallpad_prefs.xml</code> (1.99MB) trên luồng chính. Ngoài ra, <code>MainActivity</code> đang gọi <code>stopService/startService(ScreenSaverService)</code> ngay trong hàm nhận cảm ứng (93 lần/18s), và thời gian khởi động lạnh vào tới màn hình chính mất tới <strong>10.67 giây</strong>.
+        </p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="border-b border-[var(--border)] bg-[var(--secondary)]/50 text-[var(--muted-foreground)]">
+              <th class="p-3 w-20">Mã</th>
+              <th class="p-3 w-64">Tiêu chí Đánh giá</th>
+              <th class="p-3 w-44">Ngưỡng Tiêu chuẩn</th>
+              <th class="p-3 w-64">Thông số Đo Hiện tại</th>
+              <th class="p-3">Phân tích Nguyên nhân &amp; Biểu hiện</th>
+              <th class="p-3 w-20 text-center">Kết quả</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border)]">
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">2.1</td>
+              <td class="p-3 font-semibold">Thời gian CPU xử lý sự kiện chạm (Input Latency)</td>
+              <td class="p-3 text-emerald-500">TB &lt; 1.0ms<br/>P90 &lt; 2.0ms</td>
+              <td class="p-3 font-mono">Main P90: 11.07ms (Max 23.7ms)<br/>Home P90: 1.60ms | Phiên Max: 44.37ms</td>
+              <td class="p-3 text-[var(--muted-foreground)]">MainActivity xử lý cảm ứng chậm gấp 5.5 lần chuẩn do gọi IPC tắt/bật lại ScreenSaverService mỗi lần chạm.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">2.2</td>
+              <td class="p-3 font-semibold">Độ nhạy khi vuốt trượt (Touch-to-Display)</td>
+              <td class="p-3 text-emerald-500">TB &lt; 50ms<br/>P90 &lt; 70ms</td>
+              <td class="p-3 font-mono">Home TB: 43.61ms (P90 55.4ms)<br/>Main TB: 69.12ms | Phiên TB: 103.63ms</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Cuộn danh sách trong SmartHome bám tay tốt (&lt; 50ms); vuốt ngang MainActivity vượt chuẩn nhẹ (+19ms).</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/15 text-amber-500">WARN</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">2.2a (A3)</td>
+              <td class="p-3 font-semibold">Độ trễ vẽ phản hồi khi bấm nút / tab trên màn hình</td>
+              <td class="p-3 text-emerald-500">TB &lt; 50ms<br/>Max &lt; 100ms</td>
+              <td class="p-3 font-mono">Main Tap: 49.08ms (Max 107.6ms)<br/>SmartHome Tap: 109.07ms (Max 567.48ms)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Khi bấm nút hoặc chuyển tab trên SmartHome, màn hình bị khựng tới 0.57s mới vẽ xong phản hồi do re-bind Adapter và đợi I/O.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">2.3</td>
+              <td class="p-3 font-semibold">Hiệu năng cảm nhận giao diện (Perceived Perf)</td>
+              <td class="p-3 text-emerald-500">Phản hồi &le; 50ms<br/>Không khựng &gt; 200ms</td>
+              <td class="p-3 font-mono">15 đợt khựng 526ms – 1,772ms<br/>(Choreographer skip 30–101 frames)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Giao diện xuất hiện 15 đợt khựng từ 0.5s đến 1.77s khi chuyển trang hoặc đồng bộ dữ liệu ngầm.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">2.4</td>
+              <td class="p-3 font-semibold">Thời gian sẵn sàng tương tác (TTID &amp; TTFD)</td>
+              <td class="p-3 text-emerald-500">TTID &lt; 1,500ms<br/>TTFD &lt; 3,000ms</td>
+              <td class="p-3 font-mono">TTID (Splash): 12.0ms (PASS)<br/>TTFD (MainActivity): 10,670ms (FAIL)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Màn hình Splash hiện ngay sau 12ms, nhưng phải chờ 10.67s mới vào được màn hình chính để tương tác.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">2.5</td>
+              <td class="p-3 font-semibold">Thời gian khởi động (Cold / Warm / Hot Start)</td>
+              <td class="p-3 text-emerald-500">Cold &lt; 2.0s | Warm &lt; 1.0s<br/>Hot &lt; 0.5s</td>
+              <td class="p-3 font-mono">Cold: 10.67s | Warm: 1,668ms (+1.43s)<br/>Hot: 1,824ms</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Khi mở lại MainActivity từ nền vẫn mất 1.67s – 1.82s do ứng dụng khởi tạo lại toàn bộ 11 Fragment.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">2.6</td>
+              <td class="p-3 font-semibold">Độ trễ chuyển màn hình (Activity Transition)</td>
+              <td class="p-3 text-emerald-500">Displayed &lt; 350ms<br/>WaitTime &lt; 400ms</td>
+              <td class="p-3 font-mono">Camera: 363ms | Settings: 476ms<br/>Intercom: 488ms | Home: 760ms | Music: 777ms</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Mở Camera đạt chuẩn (363ms); mở SmartHome (+760ms), Music (777ms) và quay về Main (1.43s) bị trễ.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/15 text-amber-500">WARN</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">2.7</td>
+              <td class="p-3 font-semibold">Chặn luồng giao diện chính &amp; Lỗi ANR</td>
+              <td class="p-3 text-emerald-500">Không khóa &gt; 17.54ms<br/>ANR = 0</td>
+              <td class="p-3 font-mono">0 ANR | 15 đợt khóa 526ms – 1,772ms<br/>(Layout max 1,277.7ms)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Không xảy ra lỗi treo cứng ANR (&ge; 5s), nhưng luồng chính bị khóa ngắn hạn trên 0.5s tới 15 lần.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">2.7a (A4)</td>
+              <td class="p-3 font-semibold">Bóc tách tranh chấp khóa &amp; I/O trên Main Thread</td>
+              <td class="p-3 text-emerald-500">0 Lock Contention<br/>0 Disk I/O trên UI</td>
+              <td class="p-3 font-mono">1,384 mutex | 139 Java/ART locks<br/>89 I/O waits (max 62ms) | 93 IPC Service</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Luồng chính bị chặn do tranh chấp khóa với luồng mạng/media và đợi ghi file wallpad_prefs.xml (1.99MB).</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. NHÓM 3 & 4: TÀI NGUYÊN HỆ THỐNG & ĐỘ BỀN VẬN HÀNH 24/7 -->
+    <section class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[var(--border)] pb-4">
+        <div>
+          <h2 class="text-lg font-bold">4. Đánh Giá Tài Nguyên Hệ Thống &amp; Vận Hành Cố Định 24/7 (Nhóm 3 &amp; 4: Tiêu chí 3.1 – 3.7, A5 &amp; B1 – B5)</h2>
+          <p class="text-sm text-[var(--muted-foreground)] mt-0.5">
+            Kiểm định tải CPU, RAM, Garbage Collection, nhiệt độ tản nhiệt, luồng video RTSP, bộ nhớ Flash eMMC và độ ổn định dài hạn.
+          </p>
+        </div>
+        <span class="px-3 py-1 rounded-md text-xs font-bold bg-red-500/15 text-red-500 border border-red-500/30 shrink-0">9 FAIL • 4 PASS</span>
+      </div>
+
+      <div class="p-4 rounded-lg bg-[var(--background)] border border-[var(--border)] text-sm space-y-1.5">
+        <div class="font-semibold">Nhận định trọng tâm:</div>
+        <p class="text-[var(--muted-foreground)]">
+          Thiết bị vận hành rất mát (<strong>41.25°C, PASS</strong>) và quản lý tốt WakeLock. Tuy nhiên, để chạy bền bỉ 24/7 không bị văng ứng dụng, cần xử lý 3 lỗi kiến trúc nghiêm trọng: (1) <strong>Rò rỉ 30 Activities trong Backstack</strong> làm RAM phình lên <strong>503.4 MB PSS (589.4 MB RSS = 29.5% RAM máy)</strong>, tăng thêm +49.4 MB sau mỗi vòng điều hướng và dẫn tới tràn RAM (OOM) sau 15–25 vòng; (2) Lưu <strong>1.99 MB dữ liệu vào <code>wallpad_prefs.xml</code></strong> gây ra 50 đợt dọn rác GC trong 4 phút (khóa luồng 511.5ms) và ghi Flash tới ~610.8 MB/ngày; (3) Khởi tạo trùng lặp <strong>3 MQTT Clients + 4 WebSockets</strong> cùng 65 luồng mới chỉ trong 18 giây.
+        </p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="border-b border-[var(--border)] bg-[var(--secondary)]/50 text-[var(--muted-foreground)]">
+              <th class="p-3 w-20">Mã</th>
+              <th class="p-3 w-64">Tiêu chí Đánh giá</th>
+              <th class="p-3 w-44">Ngưỡng Tiêu chuẩn</th>
+              <th class="p-3 w-64">Thông số Đo Hiện tại</th>
+              <th class="p-3">Phân tích Nguyên nhân &amp; Hệ quả</th>
+              <th class="p-3 w-20 text-center">Kết quả</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border)]">
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">3.1</td>
+              <td class="p-3 font-semibold">Tải CPU (Max 400% @ 1.42GHz) &amp; Số lượng Luồng</td>
+              <td class="p-3 text-emerald-500">Nghỉ &le; 15% | Cuộn &lt; 150%<br/>Threads &lt; 50</td>
+              <td class="p-3 font-mono">Nghỉ: 34.4% (RTSP 19.3%, GC 12.9%)<br/>Cuộn: 72.4% | 89 Threads (65 mới/18s)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Tải CPU khi nghỉ cao gấp đôi ngưỡng chuẩn; tạo mới 65 luồng trong 18s thay vì tái sử dụng ThreadPool.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">3.2</td>
+              <td class="p-3 font-semibold">Áp lực Bộ nhớ RAM (Trên tổng 1,996 MB RAM)</td>
+              <td class="p-3 text-emerald-500">PSS &lt; 180 MB<br/>Activities &le; 2</td>
+              <td class="p-3 font-mono">PSS: 503.4 MB (RSS 589.4 MB = 29.5%)<br/>Native: 297.7 MB | Activities: 30</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Chiếm gần 1/3 RAM vật lý của máy, ép hệ thống nén 344.3 MB vào ZRAM Swap do giữ 30 Activities.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">3.3</td>
+              <td class="p-3 font-semibold">Thu gom rác bộ nhớ (GC Pause &amp; Memory Churn)</td>
+              <td class="p-3 text-emerald-500">Pause &lt; 2ms | Wait = 0ms<br/>&lt; 2 đợt GC/phút</td>
+              <td class="p-3 font-mono">50 đợt GC / 4 phút | Pause Max 3.79ms<br/>Freed 36MB+16MB LOS | Wait: 511.5ms</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Tốc độ xả rác bộ nhớ cực cao khi đọc/ghi chuỗi JSON từ file XML 1.99MB, gây khóa luồng 511.5ms.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">3.4</td>
+              <td class="p-3 font-semibold">Tối ưu tác vụ ngầm (Background &amp; WakeLocks)</td>
+              <td class="p-3 text-emerald-500">WorkManager hợp lệ<br/>0 Stuck WakeLock</td>
+              <td class="p-3 font-mono">0 Stuck WakeLock | 1 WorkManager (1h)<br/>2 Services (Baresip, Multicast)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Quản lý WakeLock và dịch vụ đàm thoại nội bộ (SIP Baresip) đúng tiêu chuẩn hệ điều hành.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/15 text-emerald-500">PASS</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">3.5</td>
+              <td class="p-3 font-semibold">Hồ sơ đo đạc toàn diện (CPU, Memory &amp; GFX)</td>
+              <td class="p-3 text-emerald-500">Đầy đủ dữ liệu đa tầng</td>
+              <td class="p-3 font-mono">89 Threads, Heap/PSS 3 mốc, 1,498 frames</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Thu thập đầy đủ dữ liệu thực nghiệm trên thiết bị cố định phục vụ phân tích.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/15 text-emerald-500">PASS</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">3.6</td>
+              <td class="p-3 font-semibold">Truy vết hệ thống Perfetto (System Trace)</td>
+              <td class="p-3 text-emerald-500">Đầy đủ ftrace &amp; slices</td>
+              <td class="p-3 font-mono">35.42 MB trace (18s, 131,454 slices)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Thu thập trọn vẹn sự kiện Kernel scheduling, Binder IPC, View rendering và Dalvik lock.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/15 text-emerald-500">PASS</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">3.6a (A5)</td>
+              <td class="p-3 font-semibold">Độ trễ lập lịch CPU (Kernel Runnable Wait)</td>
+              <td class="p-3 text-emerald-500">Wait Max &lt; 5.0ms<br/>Involuntary &lt; 30%</td>
+              <td class="p-3 font-mono">Main: Wait Max 24.43ms (70.2% bị ép)<br/>RenderThread: Wait Max 25.27ms</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Do 89 luồng tranh chấp 4 nhân Cortex-A55, luồng giao diện phải xếp hàng chờ CPU tới 24.4ms (&gt; 1 frame).</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">3.7</td>
+              <td class="p-3 font-semibold">Chỉ số chuẩn Jetpack Macrobenchmark</td>
+              <td class="p-3 text-emerald-500">Cold Start &lt; 2,000ms<br/>Overrun P95 &le; 0ms</td>
+              <td class="p-3 font-mono">Cold TTFD: 10,670ms<br/>Overrun P90: +48.93ms (Main), +18.39ms (Home)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Vượt ngưỡng giới hạn của bộ tiêu chuẩn Jetpack Macrobenchmark ở cả Startup và FrameOverrun.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">4.1 (B1)</td>
+              <td class="p-3 font-semibold">Nhiệt độ SoC/GPU &amp; Xung nhịp vận hành 24/7</td>
+              <td class="p-3 text-emerald-500">&lt; 65.0°C<br/>(Hạ xung ở 75.0°C)</td>
+              <td class="p-3 font-mono">Nghỉ: 38.89°C | Tải: 41.25°C (Max 41.88°C)<br/>CPU đạt đỉnh 1,416 MHz (0% Throttling)</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Thấp hơn ngưỡng hạ xung phần cứng (75.0°C) tới 33.1°C; tản nhiệt âm tường hoàn toàn ổn định.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/15 text-emerald-500">PASS</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">4.2 (B2)</td>
+              <td class="p-3 font-semibold">Giải mã Video RTSP (rkvdec) &amp; Ghép lớp đồ họa</td>
+              <td class="p-3 text-emerald-500">25–30 FPS | HWC Overlay<br/>CPU Stream &lt; 10%</td>
+              <td class="p-3 font-mono">OMX: 20.56 FPS | Luồng RTSP: 19.3% CPU<br/>1,113 lần GPU Client Composition/18s</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Luồng video ép GPU Mali-G52 ghép lớp phần mềm 61.8 lần/giây thay vì dùng HWC Overlay, gây giảm độ mượt UI.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">4.3 (B3)</td>
+              <td class="p-3 font-semibold">Tải Đọc/Ghi Flash eMMC &amp; SharedPreferences</td>
+              <td class="p-3 text-emerald-500">Prefs XML &lt; 100 KB<br/>Ghi Flash &lt; 50 MB/ngày</td>
+              <td class="p-3 font-mono">wallpad_prefs.xml = 1.99 MB!<br/>99,482 syscw | Dự báo ghi ~610.8 MB/ngày</td>
+              <td class="p-3 text-[var(--muted-foreground)]">File XML cấu hình nặng 1.99MB bị đọc/ghi liên tục, gây nghẽn luồng chính và hao mòn tuổi thọ chip nhớ eMMC.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">4.4 (B4)</td>
+              <td class="p-3 font-semibold">Quản lý Socket, File Descriptors &amp; Kết nối mạng</td>
+              <td class="p-3 text-emerald-500">1 MQTT | 1 WebSocket<br/>Sockets &lt; 30</td>
+              <td class="p-3 font-mono">151 / 32,768 FDs | 62 Sockets<br/>Chạy trùng 3 MQTT Clients + 4 WebSockets</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Mỗi lần mở lại Activity tạo thêm kết nối MQTT/WebSocket mới mà không đóng kết nối cũ.</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-blue-400">4.5 (B5)</td>
+              <td class="p-3 font-semibold">Độ ổn định dài hạn 24/7 &amp; Rò rỉ Backstack</td>
+              <td class="p-3 text-emerald-500">Backstack &le; 2 Activities<br/>Leak = 0 MB/vòng</td>
+              <td class="p-3 font-mono">Backstack: 27–30 Activities xếp chồng<br/>Leak: +49.4 MB/vòng | OOM sau ~15–25 vòng</td>
+              <td class="p-3 text-[var(--muted-foreground)]">Không giải phóng Activity cũ khi chuyển trang; chạy liên tục sẽ cạn RAM 2GB và tự thoát ứng dụng (OOM).</td>
+              <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-500">FAIL</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. DANH MỤC TOÀN BỘ CÁC THÀNH PHẦN CẦN XỬ LÝ & GIẢI PHÁP KỸ THUẬT -->
+    <section class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[var(--border)] pb-4">
+        <div>
+          <h2 class="text-lg font-bold">5. Tổng Hợp Toàn Bộ Các Thành Phần Cần Xử Lý &amp; Giải Pháp Kỹ Thuật (15 Hạng Mục)</h2>
+          <p class="text-sm text-[var(--muted-foreground)] mt-0.5">
+            Bao phủ đầy đủ 100% các tiêu chí chưa đạt (24 FAIL, 2 WARN) và toàn bộ các nút cổ chai trong chuỗi dựng hình (UI Thread &rarr; RenderThread &rarr; Skia OpenGL &rarr; GPU Mali-G52 &rarr; SurfaceFlinger HWC).
+          </p>
+        </div>
+        <span class="px-3 py-1 rounded-md text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 shrink-0">15 Thành phần • Khắc phục 26/26 lỗi</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="border-b border-[var(--border)] bg-[var(--secondary)]/50 text-[var(--muted-foreground)]">
+              <th class="p-3 w-24">Ưu tiên</th>
+              <th class="p-3 w-64">Thành phần Cần Xử lý &amp; Mã Tiêu chí</th>
+              <th class="p-3 w-56">Hiện trạng &amp; Thông số Lỗi</th>
+              <th class="p-3">Giải pháp Xử lý Kỹ thuật Cụ thể</th>
+              <th class="p-3 w-48">Chỉ số Mục tiêu Sau Xử lý</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border)] align-top">
+            <!-- NHÓM A: BỘ NHỚ RAM & VÒNG ĐỜI MÀN HÌNH -->
+            <tr class="bg-[var(--secondary)]/30">
+              <td colspan="5" class="px-3 py-2 font-bold text-xs uppercase tracking-wider text-blue-400">
+                A. Nhóm Quản lý Vòng đời Màn hình (Activity Lifecycle) &amp; Bộ nhớ RAM (Khắc phục lỗi tràn RAM 24/7)
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white">P0 - Cấp bách</span></td>
+              <td class="p-3">
+                <div class="font-semibold">1. Điều hướng &amp; Quản lý Backstack các Activity</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5"><code>MainActivity</code>, <code>SmartHome</code>, <code>Camera</code>, <code>Intercom</code>, <code>Music</code>, <code>Settings</code></div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 3.2, 4.5 (B5), 1.4</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • Tồn đọng: <strong>30 Activities</strong>, <strong>29 ViewRootImpl</strong>, <strong>11,970 Views</strong><br/>
+                • Rò rỉ: <strong>+49.4 MB PSS/vòng</strong><br/>
+                • Tràn RAM (OOM) sau <strong>15–25 vòng</strong>
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Khai báo <code>android:launchMode="singleTask"</code> cho <code>MainActivity</code> trong <code>AndroidManifest.xml</code>.<br/>
+                • Khi chuyển giữa các màn hình chức năng, truyền cờ <code>Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP</code> và gọi <code>finish()</code> tại Activity con khi rời trang.<br/>
+                • Hủy đăng ký toàn bộ Listener/Callback (<code>EventBus</code>, <code>BroadcastReceiver</code>, <code>Handler</code>) trong <code>onDestroy()</code> để GC thu hồi được Activity cũ.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • Activities sống: <strong>1 – 2</strong><br/>
+                • Tổng Views: <strong>&lt; 1,500</strong><br/>
+                • Total PSS: <strong>&lt; 180 MB</strong><br/>
+                • Leak Rate: <strong>0 MB/vòng</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white">P0 - Cấp bách</span></td>
+              <td class="p-3">
+                <div class="font-semibold">2. Bộ nhớ Native Heap &amp; Cơ chế Giải phóng Cache (<code>onTrimMemory</code>)</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Lớp <code>Application</code>, bộ đệm ảnh Bitmap &amp; JNI Media</div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 3.2</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • Native Heap: <strong>297.7 MB PSS</strong><br/>
+                • ZRAM Swap: <strong>344.3 MB</strong><br/>
+                • Khi gọi <code>onTrimMemory</code>: PSS không giảm mà tăng <strong>478.3 &rarr; 491.6 MB</strong>
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Cài đặt <code>ComponentCallbacks2.onTrimMemory(level)</code> trong <code>Application</code> và các <code>Activity</code>: gọi <code>Glide.get(ctx).clearMemory()</code> và giải phóng các buffer hình ảnh/video khi nhận mức <code>TRIM_MEMORY_RUNNING_LOW</code> hoặc <code>UI_HIDDEN</code>.<br/>
+                • Giới hạn Memory Cache của thư viện ảnh &le; 15 MB; decode ảnh đúng kích thước ô hiển thị (<code>override(w, h)</code>) và dùng chuẩn màu <code>RGB_565</code> cho ảnh nền không cần kênh trong suốt.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • Native Heap: <strong>&lt; 90 MB</strong><br/>
+                • Giảm <strong>&ge; 20% PSS</strong> khi nhận tín hiệu thiếu RAM
+              </td>
+            </tr>
+
+            <!-- NHÓM B: LƯU TRỮ DỮ LIỆU, DISK I/O & THU GOM RÁC GC -->
+            <tr class="bg-[var(--secondary)]/30">
+              <td colspan="5" class="px-3 py-2 font-bold text-xs uppercase tracking-wider text-blue-400">
+                B. Nhóm Lưu trữ Dữ liệu, Đọc/Ghi Flash eMMC &amp; Thu gom Rác Bộ nhớ GC (Khắc phục mở app chậm 10.67s &amp; khựng UI)
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white">P0 - Cấp bách</span></td>
+              <td class="p-3">
+                <div class="font-semibold">3. File cấu hình <code>wallpad_prefs.xml</code> (<code>SharedPreferences</code>)</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Lưu trữ danh sách thiết bị, phòng, kịch bản JSON</div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 4.3 (B3), 2.4, 2.5, 2.7a (A4), 3.3, 3.7</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • Dung lượng file: <strong>1.99 MB</strong><br/>
+                • Cold Start TTFD: <strong>10,670 ms</strong><br/>
+                • <strong>89 lần I/O wait</strong> trên UI (max 62ms)<br/>
+                • <strong>50 đợt GC/4p</strong> (khóa 511.5ms)<br/>
+                • Ghi Flash: <strong>~610.8 MB/ngày</strong>
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • <strong>Tách dữ liệu lớn sang <code>Room SQLite Database</code>:</strong> Chuyển toàn bộ danh sách thiết bị, trạng thái phòng, kịch bản ra khỏi <code>SharedPreferences</code> sang các bảng SQLite có đánh chỉ mục (<code>@Index</code>). Khi đổi trạng thái 1 thiết bị, chỉ chạy lệnh <code>UPDATE</code> dòng đó thay vì serialize và ghi đè lại cả file XML 1.99 MB.<br/>
+                • Chuyển toàn bộ việc đọc/parse JSON và truy vấn DB sang luồng nền <code>Dispatchers.IO</code>.<br/>
+                • Chỉ giữ lại các cờ cài đặt nhẹ (Token, IP, âm lượng) trong <code>wallpad_prefs.xml</code> (&lt; 50 KB) và dùng <code>apply()</code>.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • File XML: <strong>&lt; 50 KB</strong><br/>
+                • Cold Start: <strong>&lt; 2,500 ms</strong><br/>
+                • WaitForGc: <strong>0 ms</strong><br/>
+                • Ghi Flash: <strong>&lt; 50 MB/ngày</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-500 text-white">P2 - Trung bình</span></td>
+              <td class="p-3">
+                <div class="font-semibold">4. Cơ sở dữ liệu <code>WorkManager</code> (<code>androidx.work.workdb-wal</code>)</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Quản lý lịch tác vụ chạy ngầm định kỳ</div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 4.3 (B3), 3.4</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-amber-400">
+                • File WAL: <strong>432.6 KB</strong> (gấp 4 lần file DB chính 106 KB)
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Sử dụng <code>enqueueUniquePeriodicWork()</code> với chính sách <code>ExistingPeriodicWorkPolicy.KEEP</code> để tránh đăng ký chồng thêm bản ghi tác vụ mới mỗi lần khởi động lại ứng dụng; gọi dọn dẹp (<code>pruneWork()</code>) định kỳ.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • File WAL: <strong>&lt; 100 KB</strong>
+              </td>
+            </tr>
+
+            <!-- NHÓM C: KIẾN TRÚC GIAO DIỆN, GPU OVERDRAW & ĐỘ MƯỢT DỰNG HÌNH (7 THÀNH PHẦN) -->
+            <tr class="bg-[var(--secondary)]/30">
+              <td colspan="5" class="px-3 py-2 font-bold text-xs uppercase tracking-wider text-blue-400">
+                C. Nhóm Tối ưu Toàn diện Độ mượt Giao diện (UI Thread &rarr; RenderThread &rarr; Skia OpenGL &rarr; GPU Mali-G52)
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500 text-black">P1 - Cao</span></td>
+              <td class="p-3">
+                <div class="font-semibold">5. Độ sâu Cây giao diện &amp; Cơ chế nạp <code>ViewPager2</code> (11 Fragments)</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Bố cục XML của <code>MainActivity</code> &amp; <code>SmartHomeActivity</code></div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 1.1, 1.3, 1.4, 1.4a (A1), 1.6, 2.5, 2.6</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • Độ sâu View: <strong>Max 18 cấp</strong> (218 <code>LinearLayout</code>, 122 <code>FrameLayout</code>)<br/>
+                • Layout P90: <strong>17.24 ms</strong> (Max <strong>1,277.7 ms</strong>)<br/>
+                • Mở lại Main: <strong>1,668 ms</strong>
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Tái cấu trúc các file XML bằng <code>ConstraintLayout</code> phẳng để giảm độ sâu cây View từ 18 cấp xuống &le; 10 cấp, loại bỏ các <code>LinearLayout</code> dùng <code>layout_weight</code> lồng nhau.<br/>
+                • Đặt <code>viewPager2.offscreenPageLimit = 1</code> và áp dụng <strong>Lazy Inflate</strong> (dùng <code>ViewStub</code> hoặc chỉ nạp dữ liệu danh sách khi Fragment vào trạng thái <code>RESUMED</code>) thay vì dựng đồng thời cả 11 Fragment lúc mở màn hình.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • Độ sâu View: <strong>&le; 10 cấp</strong><br/>
+                • Layout P90: <strong>&lt; 4.0 ms</strong><br/>
+                • Chuyển màn: <strong>&lt; 350 ms</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500 text-black">P1 - Cao</span></td>
+              <td class="p-3">
+                <div class="font-semibold">6. Tỷ lệ Vẽ đè GPU (Overdraw) &amp; Lệnh <code>alpha caused saveLayer</code></div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Các thẻ Card thiết bị, lớp nền mờ &amp; hiệu ứng chuyển cảnh</div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 1.2, 1.4a (A1), 1.5, 1.7</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • Overdraw: <strong>14.8x</strong> (Main) / <strong>6.65x</strong> (Home)<br/>
+                • <strong>378 lần</strong> gọi <code>saveLayer</code> / 127 frames<br/>
+                • GPU Issue P90: <strong>15.29 ms</strong>
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Xóa bỏ các thuộc tính <code>android:background</code> trùng lặp ở các <code>ViewGroup</code> cha đã bị che khuất hoàn toàn bởi View con.<br/>
+                • Thay thế việc gán <code>android:alpha="0.x"</code> lên toàn bộ <code>ViewGroup</code> (vốn ép GPU Mali-G52 phải cấp phát bộ đệm offscreen <code>saveLayer</code>) bằng mã màu có kênh Alpha trực tiếp (<code>#80RRGGBB</code>) trên từng thành phần nền/chữ hoặc bật <code>hasOverlappingRendering() = false</code> cho các View đơn giản.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • Overdraw: <strong>&le; 2.5x</strong><br/>
+                • <code>saveLayer</code>: <strong>0 lần</strong><br/>
+                • GPU Issue: <strong>&lt; 4.0 ms</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500 text-black">P1 - Cao</span></td>
+              <td class="p-3">
+                <div class="font-semibold">7. Tối ưu <code>RecyclerView</code> Adapter, Icon <code>VectorDrawable</code> &amp; <code>Palette</code></div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Danh sách thiết bị/phòng trong <code>SmartHomeActivity</code> &amp; <code>MainActivity</code></div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 1.5, 1.5a (A2), 2.2a (A3)</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • <strong>56 lần</strong> vẽ lại Vector icon, <strong>55 lần</strong> <code>computePalette</code> khi cuộn<br/>
+                • Bấm nút/tab trên SmartHome khựng <strong>109ms (Max 567.5ms)</strong>
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Thay thế <code>notifyDataSetChanged()</code> bằng <code>ListAdapter</code> + <code>DiffUtil.ItemCallback</code> (sử dụng <code>payload</code> để chỉ vẽ lại trạng thái nút vừa bấm, không dựng lại toàn bộ các thẻ thiết bị trong phòng).<br/>
+                • Chia sẻ chung 1 <code>RecycledViewPool</code> giữa các <code>RecyclerView</code> lồng nhau, bật <code>setHasFixedSize(true)</code> và <code>isItemPrefetchEnabled = true</code> (<code>setInitialPrefetchItemCount(4)</code>).<br/>
+                • Cache sẵn các icon <code>VectorDrawable</code> (66×66, 60×60) thành <code>Bitmap</code> trong bộ nhớ và lưu kết quả tính màu <code>Palette</code> theo ID ảnh thay vì tính lại trên luồng UI mỗi khi cuộn.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • Vector repaint: <strong>0 lần</strong><br/>
+                • Bấm nút/tab: <strong>&lt; 50 ms</strong><br/>
+                • Cuộn mượt: <strong>55–57 FPS</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500 text-black">P1 - Cao</span></td>
+              <td class="p-3">
+                <div class="font-semibold">8. Tải ảnh Bitmap lên GPU (<code>Slow Bitmap Uploads</code> &amp; <code>Texture Upload</code>)</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">172 <code>AppCompatImageView</code> trên Main &amp; 81 trên SmartHome</div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 1.4, 1.5a (A2), 1.6</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • <strong>39 / 290 frames (13.4%)</strong> trên MainActivity bị <code>Slow Bitmap Uploads</code><br/>
+                • <strong>62 lần</strong> <code>texture_upload</code> trong 18s<br/>
+                • RenderThread Sync Max: <strong>8.98 ms</strong>
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Kích hoạt <strong>Hardware Bitmaps</strong> (<code>Bitmap.Config.HARDWARE</code> qua <code>Downsampler.ALLOW_HARDWARE_CONFIG = true</code> trong Glide) để ảnh sau khi giải mã được lưu trực tiếp trong bộ nhớ đồ họa GPU, loại bỏ hoàn toàn bước copy/upload Bitmap từ CPU sang GPU trên <code>RenderThread</code>.<br/>
+                • Gọi <code>Bitmap.prepareToDraw()</code> trên luồng nền trước khi gắn ảnh vào <code>ImageView</code>.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • Slow Bitmap Uploads: <strong>0%</strong><br/>
+                • RenderThread Sync: <strong>&lt; 1.5 ms</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500 text-black">P1 - Cao</span></td>
+              <td class="p-3">
+                <div class="font-semibold">9. Trễ nhịp bắt đầu vẽ khung hình (<code>VSync Delay</code> &amp; <code>Missed VSync</code>)</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Hàng đợi <code>Main Looper MessageQueue</code> &amp; cập nhật UI liên tục</div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 1.1, 1.3, 1.6, 1.7</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • VSync Delay P90: <strong>17.54 ms</strong> (Main), <strong>35.09 ms</strong> (Phiên, Max 1.28s)<br/>
+                • Missed VSync: <strong>24.83%</strong> (Main), <strong>15.69%</strong> (Phiên)
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • <strong>Gom nhóm cập nhật giao diện (UI State Conflation):</strong> Khi nhận nhiều gói tin trạng thái từ MQTT/Sensor, gom nhóm qua <code>StateFlow</code> hoặc <code>sample(32ms)</code> để chỉ đẩy tối đa 1 lệnh cập nhật UI mỗi chu kỳ VSync, tránh làm ngập hàng đợi <code>MessageQueue</code> khiến <code>Choreographer#doFrame</code> bị trễ nhịp.<br/>
+                • Hủy/tạm dừng mọi <code>ValueAnimator</code>, hiệu ứng chuyển động hoặc đồng hồ đếm ở các Fragment đang bị khuất.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • VSync Delay P90: <strong>&lt; 1.0 ms</strong><br/>
+                • Missed VSync: <strong>&lt; 1.0%</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-500 text-white">P2 - Trung bình</span></td>
+              <td class="p-3">
+                <div class="font-semibold">10. Cắt bo góc (<code>RoundedImageView</code> / <code>CardView</code>) &amp; Đợi hàng đợi GPU OpenGL</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Pipeline <code>Skia (OpenGL)</code> trên GPU Mali-G52</div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 1.4, 1.5, 1.5a (A2)</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-amber-400">
+                • <strong>123 lần</strong> <code>waiting for GPU completion</code><br/>
+                • <strong>112 lần</strong> <code>HWC release waits</code><br/>
+                • GPU P95 vọt đỉnh khi cuộn thẻ bo góc
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Thay thế <code>RoundedImageView</code> (vốn dùng <code>BitmapShader</code> hoặc <code>Canvas.clipPath</code> gây tốn tài nguyên trên Skia OpenGL) bằng <code>ViewOutlineProvider</code> chuẩn phần cứng (<code>view.clipToOutline = true</code>) hoặc <code>ShapeableImageView</code>.<br/>
+                • Đặt <code>app:cardElevation="0dp"</code> cho các thẻ <code>MaterialCardView</code> nằm bên trong danh sách cuộn (dùng viền <code>strokeWidth</code> thay cho bóng đổ động <code>Realtime Shadow</code>).
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • Giảm <strong>&gt; 80%</strong> thời gian chờ <code>GPU completion</code>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-500 text-white">P2 - Trung bình</span></td>
+              <td class="p-3">
+                <div class="font-semibold">11. Biên dịch nóng <code>JIT Compiling</code> ngay trong lúc đang vuốt/cuộn</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Thiếu cấu hình <code>Baseline Profiles</code> cho <code>RecyclerView</code> &amp; <code>ViewPager2</code></div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 1.5, 1.5a (A2), 3.7</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-amber-400">
+                • <strong>325 sự kiện</strong> <code>JIT compiling</code> trong 18s cuộn (dịch nóng <code>GapWorker</code>, <code>LinearLayoutManager</code>, <code>onDraw</code>)
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Tích hợp <strong>Jetpack Baseline Profiles</strong> (<code>androidx.profileinstaller:profileinstaller</code>) để biên dịch trước (AOT) các hàm trọng yếu của <code>RecyclerView</code>, <code>ConstraintLayout</code> và <code>ViewPager2</code> ngay khi cài đặt, giúp CPU không phải vừa cuộn danh sách vừa biên dịch mã máy.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • JIT khi cuộn: <strong>0 sự kiện</strong><br/>
+                • Mượt ngay từ lượt vuốt đầu tiên
+              </td>
+            </tr>
+
+            <!-- NHÓM D: XỬ LÝ CẢM ỨNG, ĐỒNG BỘ LUỒNG, MẠNG & VIDEO RTSP -->
+            <tr class="bg-[var(--secondary)]/30">
+              <td colspan="5" class="px-3 py-2 font-bold text-xs uppercase tracking-wider text-blue-400">
+                D. Nhóm Xử lý Cảm ứng, Đồng bộ Luồng (Locks/Threads), Mạng &amp; Giải mã Camera RTSP
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500 text-black">P1 - Cao</span></td>
+              <td class="p-3">
+                <div class="font-semibold">12. Cơ chế Đặt lại Bộ đếm Màn hình chờ (<code>ScreenSaverService</code>) khi Chạm</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Hàm <code>dispatchTouchEvent()</code> tại <code>MainActivity</code></div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 2.1, 2.2, 2.7a (A4)</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • Gọi <strong>46 Stop + 47 Start Service</strong> chỉ trong 18s chạm/vuốt<br/>
+                • Input P90: <strong>11.07 ms</strong> (Max 23.7ms)
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Loại bỏ hoàn toàn lệnh gọi IPC <code>stopService()</code> và <code>startService(ScreenSaverService)</code> bên trong <code>dispatchTouchEvent()</code>.<br/>
+                • Thay bằng bộ đếm nội bộ dùng <code>Handler.removeCallbacks(idleRunnable)</code> và <code>postDelayed()</code> chỉ kích hoạt khi nhận sự kiện <code>MotionEvent.ACTION_DOWN</code> hoặc <code>ACTION_UP</code> (bỏ qua các sự kiện <code>ACTION_MOVE</code> liên tiếp khi vuốt).
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • Input P90: <strong>&lt; 2.0 ms</strong><br/>
+                • IPC Service khi chạm: <strong>0 lần</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500 text-black">P1 - Cao</span></td>
+              <td class="p-3">
+                <div class="font-semibold">13. Quản lý Kết nối <code>MQTT</code>, <code>WebSocket</code> &amp; ThreadPool Hệ thống</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Tầng kết nối mạng &amp; Khởi tạo luồng ngầm (<code>Timer</code>, <code>Executor</code>)</div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 3.1, 3.6a (A5), 4.4 (B4)</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • Chạy trùng <strong>3 MQTT + 4 WebSockets</strong> (62 Sockets)<br/>
+                • <strong>89 Threads</strong> (tạo mới 65 luồng/18s)<br/>
+                • Chờ CPU: <strong>Max 24.43 ms</strong>
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Chuyển <code>MQTTClient</code>, <code>OkHttpClient</code> và <code>WebSocket</code> về kiến trúc <strong>Singleton duy nhất cấp Application</strong>; đóng kết nối cũ trước khi kết nối lại và không tạo client mới trong <code>Activity.onCreate()</code>.<br/>
+                • Thay thế các <code>new Thread()</code>, <code>new Timer()</code> (đã tạo tới <code>Timer-148</code>) bằng một <code>CoroutineScope</code> dùng chung với bộ điều phối giới hạn <code>Dispatchers.IO.limitedParallelism(4)</code> tương ứng với 4 nhân Cortex-A55.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • Kết nối: <strong>1 MQTT, 1 WS</strong><br/>
+                • Tổng luồng: <strong>&lt; 50 Threads</strong><br/>
+                • Chờ CPU: <strong>&lt; 5.0 ms</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500 text-black">P1 - Cao</span></td>
+              <td class="p-3">
+                <div class="font-semibold">14. Đồng bộ Dữ liệu Đa luồng (Khử khóa <code>synchronized</code> trên UI Thread)</div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Chia sẻ dữ liệu giữa luồng nhận bản tin mạng/media và luồng giao diện</div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 2.3, 2.7, 2.7a (A4)</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-red-400">
+                • <strong>1,384 pthread_mutex</strong> &amp; <strong>139 Java Monitor</strong> chặn UI trong 18s<br/>
+                • <strong>15 đợt</strong> khựng 526ms – 1,772ms
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Loại bỏ việc dùng chung khóa <code>synchronized</code> giữa luồng <code>MQTT Rec</code> / <code>RTSP IO</code> và luồng <code>Main Thread</code>.<br/>
+                • Áp dụng cấu trúc dữ liệu bất biến (Immutable State) phát qua <code>Kotlin StateFlow</code> hoặc <code>ConcurrentHashMap</code> để luồng UI luôn đọc trạng thái không khóa (Lock-free Read).
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • Lock Contention trên UI: <strong>0 lần</strong><br/>
+                • Không còn đợt đơ &gt; 200ms
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-500 text-white">P2 - Trung bình</span></td>
+              <td class="p-3">
+                <div class="font-semibold">15. Luồng Giải mã Video Camera RTSP &amp; Ghép lớp <code>SurfaceFlinger</code></div>
+                <div class="text-xs text-[var(--muted-foreground)] mt-0.5">Luồng <code>.97:554Surface]</code>, bộ giải mã <code>rkvdec</code> &amp; <code>SurfaceView</code></div>
+                <div class="text-xs text-blue-400 font-mono mt-0.5">Tiêu chí: 4.2 (B2), 3.1</div>
+              </td>
+              <td class="p-3 font-mono text-xs text-amber-400">
+                • Tốn <strong>19.3% CPU</strong> liên tục<br/>
+                • Cấp phát lại codec mỗi 3–10s<br/>
+                • <strong>1,113 lần</strong> GPU Client Comp/18s
+              </td>
+              <td class="p-3 text-[var(--muted-foreground)]">
+                • Tự động tạm dừng (<code>pause/release</code>) luồng RTSP ngay khi người dùng chuyển sang trang khác hoặc khi màn hình tắt nghỉ.<br/>
+                • Giữ ổn định phiên <code>MediaCodec</code> khi đang phát, tránh hủy và khởi tạo lại codec mỗi vài giây.<br/>
+                • Tránh đặt các lớp phủ bán trong suốt (semi-transparent overlay) đè trực tiếp lên khung <code>SurfaceView</code> của Camera để chip Rockchip đẩy thẳng khung hình video qua phần cứng <code>HWC Overlay</code>.
+              </td>
+              <td class="p-3 text-emerald-500 font-medium text-xs">
+                • CPU khi ẩn Camera: <strong>&lt; 2%</strong><br/>
+                • Ghép lớp bằng <strong>HWC Overlay</strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>
