@@ -1,45 +1,13 @@
-# GoFa Map Performance Report
+# Performance Audit Reports
 
-Bao cao HTML tong hop ket qua do hieu nang render Mapbox Android tren thiet bi that.
+Kho lưu trữ các báo cáo kiểm định hiệu năng ứng dụng Android trên thiết bị phần cứng thực tế (GitHub Pages).
 
-## Xem local
+## Danh sách Báo cáo Public (GitHub Pages)
 
-Mo file:
+1. **Lumi Wallpad (`com.lumi.wallpad` v1.0.12) trên Thiết bị Cố định SM10P:**
+   - 🌐 **Xem báo cáo HTML (GitHub Pages):** [https://minhtv15.github.io/performance-report/wallpad-performance-report.html](https://minhtv15.github.io/performance-report/wallpad-performance-report.html)
+   - 📄 **Tài liệu Markdown:** [BAO_CAO_HIEU_NANG_WALLPAD_SM10P.md](./BAO_CAO_HIEU_NANG_WALLPAD_SM10P.md)
+   - 📝 **Tài liệu Word (`.docx`):** [BAO_CAO_HIEU_NANG_WALLPAD_SM10P.docx](./BAO_CAO_HIEU_NANG_WALLPAD_SM10P.docx)
 
-```text
-index.html
-```
-
-hoac:
-
-```text
-gofa-performance-report.html
-```
-
-## Publish bang GitHub Pages
-
-Repo nay dung cho GitHub Pages project:
-
-```text
-https://minhtv15.github.io/performance-report/
-```
-
-Ten repo tren GitHub:
-
-```text
-performance-report
-```
-
-Sau khi push repo len GitHub:
-
-1. Vao `Settings` -> `Pages`.
-2. Source: `Deploy from a branch`.
-3. Branch: `main`.
-4. Folder: `/root`.
-5. Save.
-
-URL public:
-
-```text
-https://minhtv15.github.io/performance-report/
-```
+2. **GoFa Map Performance Report:**
+   - 🌐 **Xem báo cáo HTML (GitHub Pages):** [https://minhtv15.github.io/performance-report/gofa-performance-report.html](https://minhtv15.github.io/performance-report/gofa-performance-report.html)
