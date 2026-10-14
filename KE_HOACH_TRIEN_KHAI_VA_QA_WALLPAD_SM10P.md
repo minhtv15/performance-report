@@ -10,18 +10,18 @@
 
 ```mermaid
 flowchart LR
-  S1["Giai đoạn 1 (Tuần 1 - P0)<br/>Chống sập OOM & Giải phóng I/O<br/>Hạng mục: #1, #2, #3, #12"] --> G1{"Gate 1 (QA P0)<br/>PSS < 180MB | Activities ≤ 2<br/>Cold Start < 2.5s | XML < 50KB"}
-  G1 --> S2["Giai đoạn 2 (Tuần 2 - P1 UI/GPU)<br/>Độ mượt Giao diện 57.0Hz<br/>Hạng mục: #5, #6, #7, #8, #9, #10"]
+  S1["Giai đoạn 1 (P0)<br/>Chống sập OOM & Giải phóng I/O<br/>Hạng mục: #1, #2, #3, #12"] --> G1{"Gate 1 (QA P0)<br/>PSS < 180MB | Activities ≤ 2<br/>Cold Start < 2.5s | XML < 50KB"}
+  G1 --> S2["Giai đoạn 2 (P1 - UI/GPU)<br/>Độ mượt Giao diện 57.0Hz<br/>Hạng mục: #5, #6, #7, #8, #9, #10"]
   S2 --> G2{"Gate 2 (QA UI 57Hz)<br/>Jank < 10% | Overdraw ≤ 2.5x<br/>Tap < 50ms | 0 saveLayer"}
-  G2 --> S3["Giai đoạn 3 (Tuần 3 - P1/P2 Hệ thống)<br/>Đa luồng, Mạng, RTSP & AOT<br/>Hạng mục: #4, #11, #13, #14, #15"]
-  S3 --> G3{"Gate 3 (Nghiệm thu 24/7)<br/>0 Frozen Frame | 1 MQTT/1 WS<br/>Soak Test 72h Pass 31/31"}
+  G2 --> S3["Giai đoạn 3 (P1/P2 - Hệ thống)<br/>Đa luồng, Mạng, RTSP & AOT<br/>Hạng mục: #4, #11, #13, #14, #15"]
+  S3 --> G3{"Gate 3 (Nghiệm thu 24/7)<br/>0 Frozen Frame | 1 MQTT/1 WS<br/>Pass 31/31 Tiêu chí"}
 ```
 
-| Giai đoạn | Mục tiêu Trọng tâm | Các Thành phần Thực hiện | Thời lượng Dự kiến | Cổng Nghiệm thu (Quality Gate) |
-| :--- | :--- | :--- | :---: | :--- |
-| **Giai đoạn 1 (P0)** | **Chống tràn RAM (OOM) 24/7 & Xóa nghẽn I/O Luồng chính** | **#1** (Backstack Activity), **#2** (Native Heap & `onTrimMemory`), **#3** (Tách `wallpad_prefs.xml` 1.99MB sang `Room SQLite`), **#12** (Bỏ IPC `ScreenSaverService` khi chạm) | **5 – 7 ngày** | • Activities sống `≤ 2` (từ `30`)<br>• Total PSS `< 180 MB` (từ `503.4 MB`)<br>• Cold Start `< 2.5s` (từ `10.67s`)<br>• Input Latency P90 `< 2.0ms` (từ `11.07ms`) |
-| **Giai đoạn 2 (P1 - UI/GPU)** | **Tối ưu Toàn diện Độ mượt Giao diện chuẩn 57.0Hz (`17.54ms`)** | **#5** (Cây View `≤ 10 cấp` & `ViewPager2`), **#6** (Hạ `Overdraw ≤ 2.5x` & xóa `378 saveLayer`), **#7** (`RecyclerView DiffUtil`, Vector/Palette cache), **#8** (`Hardware Bitmap`), **#9** (Gom nhịp `VSync`), **#10** (`ViewOutlineProvider`) | **6 – 8 ngày** | • Jank Rate toàn phiên `< 10%` (từ `74.57%`)<br>• Overdraw `≤ 2.5x` (từ `14.8x`)<br>• Bấm nút/tab SmartHome `< 50ms` (từ `109–567ms`)<br>• `Slow Bitmap Uploads = 0%`, `saveLayer = 0` |
-| **Giai đoạn 3 (P1/P2 - Hệ thống)** | **Ổn định Đa luồng, Kết nối Mạng, Video RTSP & Biên dịch AOT** | **#13** (Singleton `MQTT/WS` & ThreadPool), **#14** (Khử khóa `synchronized` trên UI), **#15** (Tối ưu Camera RTSP & `HWC Overlay`), **#11** (`Baseline Profiles`), **#4** (`WorkManager` WAL) | **4 – 5 ngày** | • `0 Frozen Frames` (> 700ms), `0 UI Lock Wait`<br>• Duy nhất `1 MQTT + 1 WebSocket`, `< 50 Threads`<br>• CPU khi ẩn Camera `< 15%`, `0 JIT` khi cuộn<br>• Vượt qua bài đo Stress/Soak 24h liên tục |
+| Giai đoạn | Mục tiêu Trọng tâm | Các Thành phần Thực hiện | Cổng Nghiệm thu (Quality Gate) |
+| :--- | :--- | :--- | :--- |
+| **Giai đoạn 1 (P0)** | **Chống tràn RAM (OOM) 24/7 & Xóa nghẽn I/O Luồng chính** | **#1** (Backstack Activity), **#2** (Native Heap & `onTrimMemory`), **#3** (Tách `wallpad_prefs.xml` 1.99MB sang `Room SQLite`), **#12** (Bỏ IPC `ScreenSaverService` khi chạm) | • Activities sống `≤ 2` (từ `30`)<br>• Total PSS `< 180 MB` (từ `503.4 MB`)<br>• Cold Start `< 2.5s` (từ `10.67s`)<br>• Input Latency P90 `< 2.0ms` (từ `11.07ms`) |
+| **Giai đoạn 2 (P1 - UI/GPU)** | **Tối ưu Toàn diện Độ mượt Giao diện chuẩn 57.0Hz (`17.54ms`)** | **#5** (Cây View `≤ 10 cấp` & `ViewPager2`), **#6** (Hạ `Overdraw ≤ 2.5x` & xóa `378 saveLayer`), **#7** (`RecyclerView DiffUtil`, Vector/Palette cache), **#8** (`Hardware Bitmap`), **#9** (Gom nhịp `VSync`), **#10** (`ViewOutlineProvider`) | • Jank Rate toàn phiên `< 10%` (từ `74.57%`)<br>• Overdraw `≤ 2.5x` (từ `14.8x`)<br>• Bấm nút/tab SmartHome `< 50ms` (từ `109–567ms`)<br>• `Slow Bitmap Uploads = 0%`, `saveLayer = 0` |
+| **Giai đoạn 3 (P1/P2 - Hệ thống)** | **Ổn định Đa luồng, Kết nối Mạng, Video RTSP & Biên dịch AOT** | **#13** (Singleton `MQTT/WS` & ThreadPool), **#14** (Khử khóa `synchronized` trên UI), **#15** (Tối ưu Camera RTSP & `HWC Overlay`), **#11** (`Baseline Profiles`), **#4** (`WorkManager` WAL) | • `0 Frozen Frames` (> 700ms), `0 UI Lock Wait`<br>• Duy nhất `1 MQTT + 1 WebSocket`, `< 50 Threads`<br>• CPU khi ẩn Camera `< 15%`, `0 JIT` khi cuộn<br>• Vượt qua bài đo Stress/Soak 24/7 |
 
 ---
 
